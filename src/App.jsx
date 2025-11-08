@@ -9,11 +9,29 @@ export default function MicroJournal() {
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState('write');
   const [error, setError] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
 
   const isStorageAvailable = () => typeof window !== 'undefined' && window.storage;
 
   useEffect(() => {
     loadEntries();
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('draftEntry', currentEntry);
+  }, [currentEntry]);
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draftEntry');
+    if (draft) setCurrentEntry(draft);
   }, []);
 
   const loadEntries = async () => {
@@ -148,6 +166,12 @@ export default function MicroJournal() {
             <h1 className="text-4xl font-bold text-gray-800">Micro Journal</h1>
           </div>
           <p className="text-gray-600">Reflect daily, grow gradually</p>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="mt-4 px-4 py-2 rounded bg-teal-600 text-white hover:bg-teal-700 transition"
+          >
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
         </header>
 
         {error && (
@@ -163,12 +187,12 @@ export default function MicroJournal() {
               key={tab}
               onClick={() => { setView(tab); setError(''); }}
               className={`px-6 py-2 rounded-lg font-medium transition ${
-                view === tab 
-                  ? 'bg-teal-600 text-white' 
+                view === tab
+                  ? 'bg-teal-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)} 
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === 'history' && ` (${entries.length})`}
             </button>
           ))}

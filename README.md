@@ -73,7 +73,7 @@ VITE_ANTHROPIC_API_KEY=your_api_key_here
 
 **Get your API key:** Visit [Anthropic Console](https://console.anthropic.com/) to create an account and generate an API key.
 
-**Important Security Note:** The current implementation uses direct API calls from the browser. For production deployment, we strongly recommend implementing a backend proxy server to secure your API key and prevent unauthorized usage.
+**⚠️ IMPORTANT SECURITY NOTE:** The current implementation uses direct API calls from the browser, which exposes your API key in network requests. This is suitable for personal use and development only. For production deployment, you MUST implement a backend proxy server to secure your API key and prevent unauthorized usage. See the Security section below for implementation details.
 
 ### 4️⃣ Run the development server
 
@@ -114,7 +114,7 @@ micro-journal-ai/
 
 ## 🎨 Features in Detail
 
-### ✍️ Write View
+### ✏️ Write View
 - **Clean Writing Interface**: Distraction-free textarea with elegant rounded corners and focus states
 - **Live Character Counter**: Track your entry length in real-time
 - **Date Display**: Automatic date stamp with calendar icon showing full date
@@ -167,12 +167,78 @@ micro-journal-ai/
 - **Optional Feature**: App is fully functional for journaling without AI insights
 - **Environment Variables**: API key stored securely in .env file (not committed to git)
 
-### Best Practices
-- For sensitive journals, consider using browser private/incognito mode
+### Security Best Practices
+
+**⚠️ CRITICAL: Production Security Requirements**
+
+The current implementation exposes your Anthropic API key in browser network requests. This is acceptable for:
+- Personal use on your own computer
+- Development and testing
+- Trusted local environments
+
+For production deployment, you MUST implement a backend proxy:
+
+#### Backend Proxy Implementation (Node.js/Express Example)
+
+```javascript
+// server.js
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.post('/api/insights', async (req, res) => {
+  try {
+    const { entries } = req.body;
+    
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY, // Secure server-side
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Analyze these journal entries: ${JSON.stringify(entries)}`
+        }]
+      })
+    });
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate insights' });
+  }
+});
+
+app.listen(3001, () => console.log('Proxy server running on port 3001'));
+```
+
+Then update your frontend to use the proxy:
+
+```javascript
+// App.jsx - Update API call
+const response = await fetch('/api/insights', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ entries: recentEntries })
+});
+```
+
+### Additional Security Recommendations
+- For sensitive journals, use browser private/incognito mode
 - Storage API data persists until manually cleared (browser settings → Clear browsing data)
 - Suitable for regulated environments (HIPAA, GDPR) with proper deployment configuration
-- **Production Security**: Implement a backend proxy to secure API keys in production
 - Regular backups recommended (export feature coming soon)
+- Never commit `.env` file to version control
+- Use rate limiting on backend proxy to prevent abuse
+- Implement request validation and sanitization
 
 ---
 
@@ -261,7 +327,7 @@ The `dist/` folder contains production-ready static files that can be deployed a
 - Minified JavaScript and CSS
 - Tree-shaking for smaller bundle size
 - Optimized assets and images
-- Source maps disabled for production
+- Source maps for debugging (configurable)
 
 ### Deployment Options
 
@@ -423,7 +489,7 @@ Add to `package.json`:
 
 ## 💡 Roadmap & Future Enhancements
 
-### Phase 1 - Essential Features (Q4 2025)
+### Phase 1 - Essential Features (Q2 2026)
 - [x] Core journaling functionality
 - [x] Mood detection
 - [x] AI insights integration
@@ -435,7 +501,7 @@ Add to `package.json`:
 - [ ] Entry editing capability
 - [ ] Entry deletion with confirmation
 
-### Phase 2 - Enhanced UX (Q1 2026)
+### Phase 2 - Enhanced UX (Q3 2026)
 - [ ] Sentiment analysis graph/chart over time
 - [ ] Custom mood categories (user-defined emotions)
 - [ ] Tag system for organizing entries by topics
@@ -445,7 +511,7 @@ Add to `package.json`:
 - [ ] Undo/redo functionality
 - [ ] Auto-save drafts
 
-### Phase 3 - Advanced Features (Q2 2026)
+### Phase 3 - Advanced Features (Q4 2026)
 - [ ] Dark mode toggle with system preference detection
 - [ ] Multi-language support (i18n) - Spanish, French, German
 - [ ] Rich text editor with basic formatting (bold, italic, lists)
@@ -455,7 +521,7 @@ Add to `package.json`:
 - [ ] Goals and intention tracking
 - [ ] Prompts and writing suggestions
 
-### Phase 4 - Enterprise & Mobile (Q3 2026)
+### Phase 4 - Enterprise & Mobile (Q1 2026)
 - [ ] Encrypted IndexedDB storage (healthcare-grade security)
 - [ ] Optional E2E encrypted cloud backup
 - [ ] Mobile app version (React Native)
@@ -512,7 +578,7 @@ Contributions are warmly welcomed! Whether it's bug fixes, new features, documen
 - ✨ New feature implementations from roadmap
 - 🧪 Test coverage and quality assurance
 - ♿ Accessibility improvements (WCAG compliance)
-- 🔒 Security audits and improvements
+- 🔐 Security audits and improvements
 
 ---
 
@@ -569,7 +635,7 @@ Special thanks to:
 - ⭐ **Star** this repo to show support and stay notified of updates
 - 👀 **Watch** for notifications on new features and releases
 - 🍴 **Fork** to create your own customized version
-- 🐦 **Share** on social media to help others discover the project
+- 🦋 **Share** on social media to help others discover the project
 
 ### Community Guidelines
 - Be respectful, kind, and constructive
@@ -639,7 +705,7 @@ Start writing, reflecting, and growing today! 🌱
 ## 📊 Project Stats
 
 - **Version**: 1.0.0
-- **Last Updated**: November 2024
+- **Last Updated**: January 2025
 - **Status**: Active Development
 - **License**: MIT
 - **Languages**: JavaScript (React), CSS (Tailwind)

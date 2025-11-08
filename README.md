@@ -423,7 +423,7 @@ Add to `package.json`:
 
 ## 💡 Roadmap & Future Enhancements
 
-### Phase 1 - Essential Features (Q1 2026)
+### Phase 1 - Essential Features (Q4 2025)
 - [x] Core journaling functionality
 - [x] Mood detection
 - [x] AI insights integration
@@ -435,7 +435,7 @@ Add to `package.json`:
 - [ ] Entry editing capability
 - [ ] Entry deletion with confirmation
 
-### Phase 2 - Enhanced UX (Q2 2026)
+### Phase 2 - Enhanced UX (Q1 2026)
 - [ ] Sentiment analysis graph/chart over time
 - [ ] Custom mood categories (user-defined emotions)
 - [ ] Tag system for organizing entries by topics
@@ -445,7 +445,7 @@ Add to `package.json`:
 - [ ] Undo/redo functionality
 - [ ] Auto-save drafts
 
-### Phase 3 - Advanced Features (Q3 2026)
+### Phase 3 - Advanced Features (Q2 2026)
 - [ ] Dark mode toggle with system preference detection
 - [ ] Multi-language support (i18n) - Spanish, French, German
 - [ ] Rich text editor with basic formatting (bold, italic, lists)
@@ -455,7 +455,7 @@ Add to `package.json`:
 - [ ] Goals and intention tracking
 - [ ] Prompts and writing suggestions
 
-### Phase 4 - Enterprise & Mobile (Q4 2025)
+### Phase 4 - Enterprise & Mobile (Q3 2026)
 - [ ] Encrypted IndexedDB storage (healthcare-grade security)
 - [ ] Optional E2E encrypted cloud backup
 - [ ] Mobile app version (React Native)

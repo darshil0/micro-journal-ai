@@ -518,7 +518,7 @@ Contributions are warmly welcomed! Whether it's bug fixes, new features, documen
 
 ## 📜 License
 
-MIT License © 2024 Darshil
+MIT License © 2025 Darshil
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

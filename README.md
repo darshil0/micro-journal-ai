@@ -48,7 +48,7 @@
 
 ### Prerequisites
 - **Node.js 16+** and npm installed
-- **Modern browser** (Chrome 80+, Firefox 77+, Safari 14+)
+- **Modern browser** (Chrome 141+)
 - **Anthropic API key** (optional, required only for AI insights feature)
 
 ### 1️⃣ Clone the repository

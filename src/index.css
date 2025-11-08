@@ -2,17 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reset and Box Sizing */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Font smoothing */
+::-webkit-scrollbar-track {
+  background: #f0fdfa;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0d9488;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0d9488 #f0fdfa;
+}
+
+/* Base styles */
 body {
+  margin: 0;
+  padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -20,29 +39,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Root container size */
-#root {
-  width: 100%;
-  min-height: 100vh;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
 
-/* Chrome scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-  background: #14b8a6;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #0d9488;
-}
-
-/* Helper class - no impact in Chrome, for any future cross-browser */
-.scrollbar-custom {
-  scrollbar-width: thin;
-  scrollbar-color: #14b8a6 #f1f1f1;
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }

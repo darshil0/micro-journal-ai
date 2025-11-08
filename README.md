@@ -205,4 +205,3 @@ MIT License © 2025 Darshil
 
 Ready to deploy your **secure, private journaling AI assistant**.  
 Write. Reflect. Grow—safely. 🌱
-```

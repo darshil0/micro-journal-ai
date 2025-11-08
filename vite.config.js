@@ -10,7 +10,19 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: 'esbuild'
+    sourcemap: process.env.NODE_ENV !== 'production', // Keep sourcemaps in dev
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'icons': ['lucide-react']
+        }
+      }
+    }
+  },
+  // App version for potential use
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0')
   }
 })

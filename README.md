@@ -1,156 +1,161 @@
 # 🧠 Micro Journal AI
 
 > A minimalist, secure, AI-powered journaling web app built with React + Vite + Express.  
-> Reflect, record, and receive AI insights — now with a secure backend proxy.
+> Reflect, record, and receive AI insights — now with a secure backend proxy to safeguard your API key.
 
-![Vite](https://img.shields.io/badge/Vite-5.4+-yellow?logo=vitehttps://img.shields.io/badge/React-18.3-blue?logo=reacthttps://img.shields.io/badge/Express-4.19-lightgrey?logo=expresshttps://img.shields.io/badge/Anthropic
+![Vite](https://img.shields.io/badge/Vite-5.4+-yellow?logo=vite)  
+![React](https://img.shields.io/badge/React-18.3-blue?logo=react)  
+![Express](https://img.shields.io/badge/Express-4.19-lightgrey?logo=express)  
+![Anthropic](https://img.shields.io/badge/Anthropic-Claude_Sonnet_4-orange)  
+![License](https://img.shields.io/badge/License-MIT-green)
 
-  
-  
-  
-  
-![License](https://img.shields.io/badge/License Overview
+---
 
-Micro Journal AI is a secure, minimalist journaling app designed to preserve your privacy while providing AI-driven insights using Anthropic's Claude Sonnet 4 model. It now features a backend Express proxy to securely handle Anthropic API calls, preventing API key exposure in client requests.
+## 📖 Overview
 
-***
+Micro Journal AI is a privacy-first journaling application that lets you capture daily reflections and get personalized AI-powered insights using Anthropic’s Claude Sonnet 4 model. The latest version features a secure Express backend proxy that safely handles API calls, preventing exposure of your Anthropic API key in the client.
+
+---
 
 ## 🛠️ Tech Stack
 
-| Layer      | Technology            | Purpose                                 |
-|------------|-----------------------|----------------------------------------|
-| Frontend   | React 18.3 + Vite 5.4 | Modern SPA and build tooling            |
-| Backend    | Express.js            | Secure API proxy                        |
-| Security   | Helmet + rate-limit   | HTTP header protection and abuse control |
-| AI         | Anthropic API         | Natural language insights               |
-| Environment| dotenv                | Server-side environment variable management |
-| Dev Tools  | concurrently          | Parallel dev server and backend launch |
+| Layer      | Technology           | Purpose                                        |
+|------------|----------------------|------------------------------------------------|
+| Frontend   | React 18.3 + Vite 5.4 | Modern single-page application with fast build |
+| Backend    | Express.js           | Secure API proxy server                         |
+| Security   | Helmet + Rate Limiter| HTTP security headers and request rate limiting |
+| AI         | Anthropic API        | Text generation and AI journaling insights     |
+| Environment| dotenv               | Server-side environment variable management    |
+| Dev Tools  | concurrently         | Run backend and frontend servers concurrently  |
 
-***
+---
 
 ## 🚀 Setup & Installation
 
 ### Prerequisites
 
-- Node.js 18+  
-- npm 9+  
+- Node.js 18 or higher  
+- npm 9 or higher  
 - Anthropic API key  
 
-### Clone & Install
+### 1️⃣ Clone the repository and install dependencies
 
-```bash
+```
 git clone https://github.com/darshil0/micro-journal-ai.git
 cd micro-journal-ai
 npm install
 ```
 
-### Environment Configuration
+### 2️⃣ Configure environment
 
-Create a `.env` file (or copy `.env.example`) in the project root:
+Create a `.env` file in the project root (or copy from `.env.example`):
 
 ```
 ANTHROPIC_API_KEY=your_api_key_here
 PORT=3000
 ```
 
-**Important:** The Anthropic API key is now stored server-side. Do **not** use `VITE_ANTHROPIC_API_KEY` client-side.
+> **Important:** The Anthropic API key is stored *only* server-side. Do **not** use `VITE_ANTHROPIC_API_KEY` in the frontend. This prevents key exposure in browser network requests.
 
-### Run Development Environment
+### 3️⃣ Start development environment
 
-```bash
+```
 npm run dev
 ```
 
-This will concurrently start the backend proxy server (`http://localhost:3000`) and frontend dev server (`http://localhost:5173`), with API calls proxied securely.
+This runs the Express backend proxy on `http://localhost:3000` and the React frontend dev server on `http://localhost:5173` with API requests securely proxied.
 
-### Build & Run Production
+### 4️⃣ Build and run production
 
-```bash
+```
 npm run build
 npm start
 ```
 
-The Express server will serve the optimized frontend assets under `dist/`.
+The Express server serves the optimized frontend from the `dist/` directory on the port defined by the `PORT` environment variable (default 3000).
 
-***
+---
 
-## 🔒 Security Highlights
+## 🔒 Security Features
 
-- Server-side API key storage using `.env` file and `dotenv`.
-- Frontend makes calls only to backend `/api/generate` endpoint — no direct Anthropic API calls.
-- HTTP security headers provided by Helmet.
-- Rate limiting (30 requests/minute/IP) via express-rate-limit.
-- Ready for compliance with HIPAA and GDPR in production deployments when properly configured.
+- Server-side environment variable handling for API keys  
+- API requests proxied through Express backend, never exposed to the client  
+- HTTP header protection via Helmet middleware  
+- Request rate limiting (30 requests/minute per IP) to prevent abuse  
+- Clear separation of frontend and backend concerns for HIPAA/GDPR compliance when deployed  
 
-***
+---
 
-## 🧪 Verification
+## 🧪 API Verification
 
-Test your backend API proxy:
+Test the backend API endpoint directly to verify operation:
 
-```bash
+```
 curl -X POST http://localhost:3000/api/generate \
   -H "Content-Type: application/json" \
-  -d '{"prompt":"Summarize: Today I felt productive"}'
+  -d '{"prompt":"Summarize: Today was productive"}'
 ```
 
-Expected JSON response format:
+Expected JSON response:
 
-```json
+```
 { "provider": "anthropic", "result": { ... } }
 ```
 
-***
+---
 
 ## 📁 Project Structure
 
 ```
 micro-journal-ai/
-├── server.js           # Express backend with proxy & security
+├── server.js           # Express backend with Anthropic proxy and security
 ├── .env.example        # Sample environment variables
-├── .gitignore          # Ignores .env and others
+├── .gitignore          # Includes `.env` for security
 ├── src/                # React frontend source code
-│   └── App.jsx         # Main UI and API client
-├── vite.config.js      # Dev server proxy configuration
-├── package.json        # Scripts & dependencies
-├── FIXES.md            # Documentation of fixes/changes
-└── dist/               # Production build output
+│   └── App.jsx         # Frontend React component calling backend API
+├── vite.config.js      # Vite config with proxy setup for development
+├── package.json        # Project dependencies and npm scripts
+├── FIXES.md            # Documentation of architectural and security fixes
+└── dist/               # Production-ready frontend build output
 ```
 
-***
+---
 
-## ⚙️ NPM Scripts
+## ⚙️ Available Scripts
 
 | Command          | Description                                  |
 |------------------|----------------------------------------------|
-| `npm run dev`    | Run Express server and Vite dev server in parallel |
-| `npm run build`  | Create production build output                |
-| `npm start`      | Start Express server serving production build |
-| `npm run preview`| Preview production build locally              |
+| `npm run dev`    | Run backend and frontend dev servers concurrently |
+| `npm run build`  | Create production frontend build             |
+| `npm start`      | Start Express backend server serving the production build |
+| `npm run preview`| Preview production build locally (optional) |
 
-***
+---
 
 ## 🌐 Deployment Recommendations
 
-- Host on single server or cloud provider supporting Node.js + static files.  
-- Set `ANTHROPIC_API_KEY` securely in environment variables.  
-- Use `npm run build && npm start` for production.  
-- Platforms like Render, Railway, or Vercel can be configured to support Node backend with static serving.  
-- Ensure rate limiting and security headers active to protect API usage.
+- Deploy as a single Node.js server hosting both backend proxy and frontend static assets  
+- Configure `ANTHROPIC_API_KEY` environment variable securely in your host  
+- Recommended hosting platforms: Render, Railway, Vercel, Netlify (with custom backend), or any VPS  
+- Ensure rate limiting and security middleware stay enabled in production  
+- Rebuild frontend after changing environment variables (Vite embeds env at build time)
 
-***
+---
 
 ## 🤝 Contributing
 
-Contributions welcome! Fork, branch, test, pull request. See CONTRIBUTING.md for guidelines.  
+Contributions and feedback are welcome! Fork the repo, create feature branches, test your changes thoroughly, and open pull requests with descriptive commit messages.
 
-***
+---
 
 ## 📜 License
 
 MIT License © 2025 Darshil
 
-Built with ❤️ by Darshil — a mindful journaling AI experience promoting privacy, security, and personal growth.
+---
 
-***
+Built with ❤️ by Darshil — providing a secure, private journaling experience powered by advanced AI insights.
 
+---
+
+*Your reflections are valuable. Micro Journal AI supports your mindful growth with privacy and security as top priorities.*

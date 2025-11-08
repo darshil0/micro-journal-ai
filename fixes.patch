@@ -1,0 +1,18 @@
+From 11babcde00000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Automated QA Assistant <qa@microjournal.ai>
+Date: 2025-11-08 16:00:00 -0600
+Subject: Apply secure backend proxy, updated frontend API logic, and config fixes
+
+---
+ .env.example |  4 ++++
+ FIXES.md     | 84 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ package.json | 21 +++++++++++++--
+ server.js    | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/App.jsx  | 37 ++++++++++++++++++++++++++--
+ vite.config.js | 11 ++++++++++
+ 6 files changed, 224 insertions(+), 4 deletions(-)
+ create mode 100644 .env.example
+ create mode 100644 FIXES.md
+ create mode 100644 server.js
+
+[...PATCH CONTENT TRUNCATED FOR BREVITY IN CODE...]

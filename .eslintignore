@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Configuration files
+*.config.js
+*.config.cjs
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

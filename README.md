@@ -102,7 +102,7 @@ micro-journal-ai/
 ├── tailwind.config.js     # Tailwind CSS configuration
 ├── vite.config.js         # Vite build configuration
 ├── LICENSE                # MIT License
-└── README.md              # This file
+└── README.md              # This file contains all the relevant information.
 ```
 
 ---

@@ -2,12 +2,12 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}", // added jsx explicitly for React
   ],
   theme: {
     extend: {
       colors: {
-        'teal': {
+        teal: {
           50: '#f0fdfa',
           100: '#ccfbf1',
           200: '#99f6e4',
@@ -19,7 +19,7 @@ export default {
           800: '#115e59',
           900: '#134e4a',
         },
-        'cyan': {
+        cyan: {
           50: '#ecfeff',
           100: '#cffafe',
           200: '#a5f3fc',
@@ -30,9 +30,9 @@ export default {
           700: '#0e7490',
           800: '#155e75',
           900: '#164e63',
-        }
-      }
+        },
+      },
     },
   },
   plugins: [],
-}
+};

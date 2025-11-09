@@ -19,6 +19,12 @@ function App() {
   // Load entries from storage API
   const loadEntries = async () => {
     try {
+      // Check if storage API is available
+      if (typeof window.storage === 'undefined') {
+        console.warn('Storage API not available. Entries will not persist.');
+        return;
+      }
+
       const result = await window.storage.get('journal-entries');
       if (result && result.value) {
         const loadedEntries = JSON.parse(result.value);
@@ -33,6 +39,12 @@ function App() {
   // Save entries to storage API
   const saveEntries = async (newEntries) => {
     try {
+      // Check if storage API is available
+      if (typeof window.storage === 'undefined') {
+        console.warn('Storage API not available. Entries will not persist.');
+        return;
+      }
+
       await window.storage.set('journal-entries', JSON.stringify(newEntries));
     } catch (err) {
       console.error('Failed to save entries:', err);
@@ -43,19 +55,35 @@ function App() {
   // Detect mood based on keywords
   const detectMood = (text) => {
     const lowerText = text.toLowerCase();
-    
+
     const positiveKeywords = [
-      'happy', 'excited', 'grateful', 'blessed', 'thankful',
-      'joyful', 'amazing', 'wonderful', 'love', 'great'
-    ];
-    
-    const negativeKeywords = [
-      'sad', 'anxious', 'worried', 'stressed', 'tired',
-      'overwhelmed', 'difficult', 'tough', 'hard', 'frustrated'
+      'happy',
+      'excited',
+      'grateful',
+      'blessed',
+      'thankful',
+      'joyful',
+      'amazing',
+      'wonderful',
+      'love',
+      'great',
     ];
 
-    const hasPositive = positiveKeywords.some(word => lowerText.includes(word));
-    const hasNegative = negativeKeywords.some(word => lowerText.includes(word));
+    const negativeKeywords = [
+      'sad',
+      'anxious',
+      'worried',
+      'stressed',
+      'tired',
+      'overwhelmed',
+      'difficult',
+      'tough',
+      'hard',
+      'frustrated',
+    ];
+
+    const hasPositive = positiveKeywords.some((word) => lowerText.includes(word));
+    const hasNegative = negativeKeywords.some((word) => lowerText.includes(word));
 
     if (hasPositive && !hasNegative) return 'positive';
     if (hasNegative) return 'reflective';
@@ -68,7 +96,7 @@ function App() {
     setSuccess('');
 
     const trimmedText = entryText.trim();
-    
+
     if (trimmedText.length < 10) {
       setError('Please write at least 10 characters for a meaningful entry.');
       return;
@@ -78,16 +106,16 @@ function App() {
       id: Date.now(),
       text: trimmedText,
       date: new Date().toISOString(),
-      mood: detectMood(trimmedText)
+      mood: detectMood(trimmedText),
     };
 
     const updatedEntries = [newEntry, ...entries];
     setEntries(updatedEntries);
     await saveEntries(updatedEntries);
-    
+
     setEntryText('');
     setSuccess('Entry saved successfully! ✨');
-    
+
     setTimeout(() => setSuccess(''), 3000);
   };
 
@@ -122,16 +150,18 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `You are a gentle, supportive journal companion. Analyze these recent journal entries and provide a warm, empathetic insight about patterns, themes, or growth you notice. Be encouraging and non-judgmental. Keep your response to 2-3 paragraphs.\n\n${entriesText}`
-          }]
-        })
+          messages: [
+            {
+              role: 'user',
+              content: `You are a gentle, supportive journal companion. Analyze these recent journal entries and provide a warm, empathetic insight about patterns, themes, or growth you notice. Be encouraging and non-judgmental. Keep your response to 2-3 paragraphs.\n\n${entriesText}`,
+            },
+          ],
+        }),
       });
 
       if (!response.ok) {
@@ -140,8 +170,8 @@ function App() {
 
       const data = await response.json();
       const insightText = data.content
-        .filter(block => block.type === 'text')
-        .map(block => block.text)
+        .filter((block) => block.type === 'text')
+        .map((block) => block.text)
         .join('\n');
 
       setInsight(insightText);
@@ -156,17 +186,23 @@ function App() {
   // Mood color mapping
   const getMoodColor = (mood) => {
     switch (mood) {
-      case 'positive': return 'border-green-500';
-      case 'reflective': return 'border-blue-500';
-      default: return 'border-gray-400';
+      case 'positive':
+        return 'border-green-500';
+      case 'reflective':
+        return 'border-blue-500';
+      default:
+        return 'border-gray-400';
     }
   };
 
   const getMoodBgColor = (mood) => {
     switch (mood) {
-      case 'positive': return 'bg-green-100 text-green-800';
-      case 'reflective': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'positive':
+        return 'bg-green-100 text-green-800';
+      case 'reflective':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -175,9 +211,7 @@ function App() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-teal-800 mb-2">
-            🧠 Micro Journal AI
-          </h1>
+          <h1 className="text-4xl font-bold text-teal-800 mb-2">🧠 Micro Journal AI</h1>
           <p className="text-gray-600">
             Your private space for daily reflection and AI-powered insights
           </p>
@@ -249,30 +283,26 @@ function App() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="text-teal-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Today's Entry
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-800">Today&apos;s Entry</h2>
               </div>
               <p className="text-gray-600 mb-4">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
                 })}
               </p>
-              
+
               <textarea
                 value={entryText}
                 onChange={(e) => setEntryText(e.target.value)}
                 placeholder="How are you feeling today? What's on your mind?"
                 className="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:outline-none resize-none"
               />
-              
+
               <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-500">
-                  {entryText.length} characters
-                </span>
+                <span className="text-sm text-gray-500">{entryText.length} characters</span>
                 <button
                   onClick={handleSaveEntry}
                   disabled={entryText.trim().length < 10}
@@ -287,10 +317,8 @@ function App() {
           {/* History View */}
           {view === 'history' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                Your Journal History
-              </h2>
-              
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Journal History</h2>
+
               {entries.length === 0 ? (
                 <div className="text-center py-12">
                   <BookOpen className="mx-auto text-gray-300 mb-4" size={64} />
@@ -316,10 +344,12 @@ function App() {
                           {new Date(entry.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
-                            year: 'numeric'
+                            year: 'numeric',
                           })}
                         </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getMoodBgColor(entry.mood)}`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${getMoodBgColor(entry.mood)}`}
+                        >
                           {entry.mood.toUpperCase()}
                         </span>
                       </div>
@@ -336,11 +366,9 @@ function App() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="text-teal-600" size={24} />
-                <h2 className="text-2xl font-bold text-gray-800">
-                  AI Insights
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-800">AI Insights</h2>
               </div>
-              
+
               <p className="text-gray-600 mb-6">
                 Get personalized reflections on your journaling patterns.
                 {entries.length < 3 && ` You have ${entries.length} of 3 entries needed.`}
@@ -360,9 +388,7 @@ function App() {
                     <Sparkles className="text-teal-600" size={20} />
                     <h3 className="font-semibold text-teal-800">Your Insight</h3>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {insight}
-                  </p>
+                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{insight}</p>
                 </div>
               )}
             </div>
@@ -371,13 +397,11 @@ function App() {
 
         {/* Footer */}
         <footer className="text-center mt-8 text-gray-600 text-sm">
-          <p>
-            Made with ❤️ for mindful reflection • All data stored locally in your browser
-          </p>
+          <p>Made with ❤️ for mindful reflection • All data stored locally in your browser</p>
           <p className="mt-2">
-            <a 
-              href="https://github.com/darshil0/micro-journal-ai" 
-              target="_blank" 
+            <a
+              href="https://github.com/darshil0/micro-journal-ai"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-teal-600 hover:text-teal-700 underline"
             >

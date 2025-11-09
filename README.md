@@ -455,7 +455,7 @@ describe('MicroJournal', () => {
 
 ## 💡 Roadmap & Future Enhancements
 
-### Phase 1 - Essential Features (Q1 2026)
+### Phase 1 - Essential Features (Q1 2025)
 - [x] Core journaling functionality
 - [x] Mood detection
 - [x] AI insights integration
@@ -465,7 +465,7 @@ describe('MicroJournal', () => {
 - [ ] Entry editing
 - [ ] Entry deletion
 
-### Phase 2 - Enhanced UX (Q2 2026)
+### Phase 2 - Enhanced UX (Q2 2025)
 - [ ] Sentiment analysis charts
 - [ ] Custom mood categories
 - [ ] Tag system
@@ -473,7 +473,7 @@ describe('MicroJournal', () => {
 - [ ] Daily reminders
 - [ ] Keyboard shortcuts
 
-### Phase 3 - Advanced Features (Q3 2026)
+### Phase 3 - Advanced Features (Q3 2025)
 - [ ] Dark mode
 - [ ] Multi-language support
 - [ ] Rich text editor
@@ -481,7 +481,7 @@ describe('MicroJournal', () => {
 - [ ] Voice-to-text
 - [ ] Weekly/monthly summaries
 
-### Phase 4 - Enterprise & Mobile (Q4 2026)
+### Phase 4 - Enterprise & Mobile (Q4 2025)
 - [ ] Encrypted storage
 - [ ] Cloud backup
 - [ ] Mobile app
@@ -576,12 +576,10 @@ echo "VITE_ANTHROPIC_API_KEY=your_api_key_here" > .env
 npm run dev
 ```
 
+
 Your private, AI-powered journal will be live at **http://localhost:5173**
-
 Start writing, reflecting, and growing today! 🌱
-
----
 
 Made with ❤️ and ☕ by [Darshil](https://github.com/darshil0) for mindful reflection
 
-Remember: Your mental health journey is unique and valuable. This tool supports self-reflection, not replace professional mental health care.
+*Remember: Your mental health journey is unique and valuable. This tool supports self-reflection, not replace professional mental health care.*

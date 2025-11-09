@@ -1,91 +1,102 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MicroJournal from '../src/App.jsx';
 
 describe('MicroJournal App', () => {
+  let user;
+
   beforeEach(() => {
     localStorage.clear();
     jest.resetAllMocks();
+    user = userEvent.setup();
   });
 
   test('renders initial UI and toggles dark mode', async () => {
-    const user = userEvent.setup();
     render(<MicroJournal />);
-    
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Micro Journal/i);
-    
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: /Micro Journal/i })
+    ).toBeInTheDocument();
+
     const toggleBtn = screen.getByRole('button', { name: /dark mode/i });
-    expect(toggleBtn).toBeInTheDocument();
-    
+
     await user.click(toggleBtn);
-    
-    expect(await screen.findByRole('button', { name: /light mode/i })).toBeInTheDocument();
+
+    expect(
+      await screen.findByRole('button', { name: /light mode/i })
+    ).toBeInTheDocument();
   });
 
   test('displays error if entry is shorter than 10 chars', async () => {
-    const user = userEvent.setup();
     render(<MicroJournal />);
-    
-    const saveBtn = screen.getByRole('button', { name: /save entry/i });
-    await user.click(saveBtn);
-    
-    expect(await screen.findByText(/Please write at least 10 characters/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /save entry/i }));
+
+    expect(
+      await screen.findByText(/Please write at least 10 characters/i)
+    ).toBeInTheDocument();
   });
 
   test('allows writing and saving a journal entry', async () => {
-    const user = userEvent.setup();
     render(<MicroJournal />);
-    
+
     const textarea = screen.getByPlaceholderText(/What's on your mind/i);
     await user.type(textarea, 'Today was a great day with lots of joy');
-    
-    expect(textarea.value).toBe('Today was a great day with lots of joy');
-    
-    const saveBtn = screen.getByRole('button', { name: /save entry/i });
-    await user.click(saveBtn);
-    
+
+    expect(textarea).toHaveValue('Today was a great day with lots of joy');
+
+    await user.click(screen.getByRole('button', { name: /save entry/i }));
+
     await waitFor(() => {
-      expect(screen.queryByText(/Please write at least 10 characters/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Please write at least 10 characters/i)
+      ).not.toBeInTheDocument();
     });
-    
-    const historyTab = screen.getByRole('tab', { name: /history/i });
-    await user.click(historyTab);
-    
-    expect(await screen.findByText(/Today was a great day with lots of joy/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /history/i }));
+
+    expect(
+      await screen.findByText(/Today was a great day with lots of joy/i)
+    ).toBeInTheDocument();
   });
 
   test('switches between write, history, and insights views', async () => {
-    const user = userEvent.setup();
     render(<MicroJournal />);
-    
+
     const writeTab = screen.getByRole('tab', { name: /write/i });
     const historyTab = screen.getByRole('tab', { name: /history/i });
     const insightsTab = screen.getByRole('tab', { name: /insights/i });
-    
+
     await user.click(historyTab);
-    expect(historyTab).toHaveClass('bg-teal-600');
+
+    expect(historyTab).toHaveAttribute('aria-selected', 'true');
     expect(await screen.findByText(/History Entries/i)).toBeInTheDocument();
-    
+
     await user.click(insightsTab);
-    expect(insightsTab).toHaveClass('bg-teal-600');
+
+    expect(insightsTab).toHaveAttribute('aria-selected', 'true');
     expect(await screen.findByText(/AI Insights/i)).toBeInTheDocument();
-    
+
     await user.click(writeTab);
-    expect(writeTab).toHaveClass('bg-teal-600');
-    expect(await screen.findByPlaceholderText(/What's on your mind/i)).toBeInTheDocument();
+
+    expect(writeTab).toHaveAttribute('aria-selected', 'true');
+    expect(
+      await screen.findByPlaceholderText(/What's on your mind/i)
+    ).toBeInTheDocument();
   });
 
   test('displays AI insight error without API key or fewer than 3 entries', async () => {
-    const user = userEvent.setup();
     render(<MicroJournal />);
-    
-    const insightsTab = screen.getByRole('tab', { name: /insights/i });
-    await user.click(insightsTab);
-    
-    const genBtn = screen.getByRole('button', { name: /generate new insight/i });
-    await user.click(genBtn);
-    
-    expect(await screen.findByText(/Write at least 3 entries/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /insights/i }));
+
+    await user.click(
+      screen.getByRole('button', { name: /generate new insight/i })
+    );
+
+    expect(
+      await screen.findByText(/Write at least 3 entries/i)
+    ).toBeInTheDocument();
   });
 });

@@ -32,7 +32,7 @@ function App() {
       }
     } catch (err) {
       console.error('Failed to load entries:', err);
-      // Storage API not available, entries will stay in state only
+      // Storage API not available or key doesn't exist, entries will stay in state only
     }
   };
 
@@ -126,7 +126,7 @@ function App() {
     setInsight('');
 
     if (entries.length < 3) {
-      setError('You need at least 3 entries to generate insights.');
+      setError('Write at least 3 entries to generate insights.');
       setLoading(false);
       return;
     }
@@ -183,6 +183,14 @@ function App() {
     }
   };
 
+  // Handle keyboard navigation for tabs
+  const handleTabKeyDown = (e, targetView) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setView(targetView);
+    }
+  };
+
   // Mood color mapping
   const getMoodColor = (mood) => {
     switch (mood) {
@@ -218,9 +226,19 @@ function App() {
         </header>
 
         {/* Navigation */}
-        <nav className="flex gap-2 mb-6 bg-white rounded-xl p-2 shadow-md">
+        <nav
+          className="flex gap-2 mb-6 bg-white rounded-xl p-2 shadow-md"
+          role="tablist"
+          aria-label="Journal sections"
+        >
           <button
             onClick={() => setView('write')}
+            onKeyDown={(e) => handleTabKeyDown(e, 'write')}
+            role="tab"
+            aria-selected={view === 'write'}
+            aria-controls="write-panel"
+            id="write-tab"
+            tabIndex={view === 'write' ? 0 : -1}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
               view === 'write'
                 ? 'bg-teal-600 text-white shadow-md'
@@ -228,12 +246,18 @@ function App() {
             }`}
           >
             <span className="flex items-center justify-center gap-2">
-              <Calendar size={20} />
+              <Calendar size={20} aria-hidden="true" />
               Write
             </span>
           </button>
           <button
             onClick={() => setView('history')}
+            onKeyDown={(e) => handleTabKeyDown(e, 'history')}
+            role="tab"
+            aria-selected={view === 'history'}
+            aria-controls="history-panel"
+            id="history-tab"
+            tabIndex={view === 'history' ? 0 : -1}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
               view === 'history'
                 ? 'bg-teal-600 text-white shadow-md'
@@ -241,12 +265,18 @@ function App() {
             }`}
           >
             <span className="flex items-center justify-center gap-2">
-              <BookOpen size={20} />
+              <BookOpen size={20} aria-hidden="true" />
               History
             </span>
           </button>
           <button
             onClick={() => setView('insights')}
+            onKeyDown={(e) => handleTabKeyDown(e, 'insights')}
+            role="tab"
+            aria-selected={view === 'insights'}
+            aria-controls="insights-panel"
+            id="insights-tab"
+            tabIndex={view === 'insights' ? 0 : -1}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
               view === 'insights'
                 ? 'bg-teal-600 text-white shadow-md'
@@ -254,7 +284,7 @@ function App() {
             }`}
           >
             <span className="flex items-center justify-center gap-2">
-              <Sparkles size={20} />
+              <Sparkles size={20} aria-hidden="true" />
               Insights
             </span>
           </button>
@@ -264,25 +294,38 @@ function App() {
         <main className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+            <div
+              className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
+              role="alert"
+              aria-live="assertive"
+            >
+              <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} aria-hidden="true" />
               <p className="text-red-700">{error}</p>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-              <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
+            <div
+              className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3"
+              role="status"
+              aria-live="polite"
+            >
+              <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} aria-hidden="true" />
               <p className="text-green-700">{success}</p>
             </div>
           )}
 
           {/* Write View */}
           {view === 'write' && (
-            <div>
+            <div
+              role="tabpanel"
+              id="write-panel"
+              aria-labelledby="write-tab"
+              tabIndex={0}
+            >
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="text-teal-600" size={24} />
+                <Calendar className="text-teal-600" size={24} aria-hidden="true" />
                 <h2 className="text-2xl font-bold text-gray-800">Today&apos;s Entry</h2>
               </div>
               <p className="text-gray-600 mb-4">
@@ -294,19 +337,31 @@ function App() {
                 })}
               </p>
 
+              <label htmlFor="entry-textarea" className="sr-only">
+                Journal entry text
+              </label>
               <textarea
+                id="entry-textarea"
                 value={entryText}
                 onChange={(e) => setEntryText(e.target.value)}
                 placeholder="How are you feeling today? What's on your mind?"
                 className="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:outline-none resize-none"
+                aria-describedby="char-count"
               />
 
               <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-500">{entryText.length} characters</span>
+                <span id="char-count" className="text-sm text-gray-500">
+                  {entryText.length} characters
+                </span>
                 <button
                   onClick={handleSaveEntry}
                   disabled={entryText.trim().length < 10}
                   className="bg-teal-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  aria-label={
+                    entryText.trim().length < 10
+                      ? 'Save entry (disabled, minimum 10 characters required)'
+                      : 'Save entry'
+                  }
                 >
                   Save Entry
                 </button>
@@ -316,12 +371,17 @@ function App() {
 
           {/* History View */}
           {view === 'history' && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Journal History</h2>
+            <div
+              role="tabpanel"
+              id="history-panel"
+              aria-labelledby="history-tab"
+              tabIndex={0}
+            >
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">History Entries</h2>
 
               {entries.length === 0 ? (
                 <div className="text-center py-12">
-                  <BookOpen className="mx-auto text-gray-300 mb-4" size={64} />
+                  <BookOpen className="mx-auto text-gray-300 mb-4" size={64} aria-hidden="true" />
                   <p className="text-gray-500 mb-4">
                     No entries yet. Start writing to see your journey!
                   </p>
@@ -335,26 +395,31 @@ function App() {
               ) : (
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                   {entries.map((entry) => (
-                    <div
+                    <article
                       key={entry.id}
                       className={`border-l-4 ${getMoodColor(entry.mood)} bg-gray-50 p-4 rounded-r-lg shadow-sm`}
+                      aria-label={`Journal entry from ${new Date(entry.date).toLocaleDateString()}`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-sm text-gray-500">
+                        <time
+                          className="text-sm text-gray-500"
+                          dateTime={entry.date}
+                        >
                           {new Date(entry.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
                           })}
-                        </span>
+                        </time>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${getMoodBgColor(entry.mood)}`}
+                          aria-label={`Mood: ${entry.mood}`}
                         >
                           {entry.mood.toUpperCase()}
                         </span>
                       </div>
                       <p className="text-gray-700 whitespace-pre-wrap">{entry.text}</p>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}
@@ -363,9 +428,14 @@ function App() {
 
           {/* Insights View */}
           {view === 'insights' && (
-            <div>
+            <div
+              role="tabpanel"
+              id="insights-panel"
+              aria-labelledby="insights-tab"
+              tabIndex={0}
+            >
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="text-teal-600" size={24} />
+                <Sparkles className="text-teal-600" size={24} aria-hidden="true" />
                 <h2 className="text-2xl font-bold text-gray-800">AI Insights</h2>
               </div>
 
@@ -378,14 +448,26 @@ function App() {
                 onClick={generateInsights}
                 disabled={loading || entries.length < 3}
                 className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-6 py-4 rounded-xl font-medium hover:from-teal-700 hover:to-cyan-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md mb-6"
+                aria-label={
+                  entries.length < 3
+                    ? `Generate new insight (disabled, ${3 - entries.length} more entries needed)`
+                    : loading
+                    ? 'Generating insights, please wait'
+                    : 'Generate new insight'
+                }
+                aria-busy={loading}
               >
                 {loading ? 'Generating Insights...' : 'Generate New Insight'}
               </button>
 
               {insight && (
-                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl border-2 border-teal-200">
+                <div
+                  className="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl border-2 border-teal-200"
+                  role="region"
+                  aria-label="AI generated insight"
+                >
                   <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="text-teal-600" size={20} />
+                    <Sparkles className="text-teal-600" size={20} aria-hidden="true" />
                     <h3 className="font-semibold text-teal-800">Your Insight</h3>
                   </div>
                   <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{insight}</p>

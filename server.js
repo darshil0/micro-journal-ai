@@ -131,6 +131,6 @@ app.post('/api/insights', async (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Micro Journal AI Backend Proxy running on port ${PORT}`);
-  console.log(`📍 Frontend should connect to: http://localhost:${PORT}`);
+  console.log(`🔗 Frontend should connect to: http://localhost:${PORT}`);
   console.log(`⚠️  Make sure ANTHROPIC_API_KEY is set in .env`);
 });

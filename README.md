@@ -455,7 +455,7 @@ describe('MicroJournal', () => {
 
 ## 💡 Roadmap & Future Enhancements
 
-### Phase 1 - Essential Features (Q1 2025)
+### Phase 1 - Essential Features (Q1 2026)
 - [x] Core journaling functionality
 - [x] Mood detection
 - [x] AI insights integration
@@ -465,7 +465,7 @@ describe('MicroJournal', () => {
 - [ ] Entry editing
 - [ ] Entry deletion
 
-### Phase 2 - Enhanced UX (Q2 2025)
+### Phase 2 - Enhanced UX (Q2 2026)
 - [ ] Sentiment analysis charts
 - [ ] Custom mood categories
 - [ ] Tag system
@@ -473,7 +473,7 @@ describe('MicroJournal', () => {
 - [ ] Daily reminders
 - [ ] Keyboard shortcuts
 
-### Phase 3 - Advanced Features (Q3 2025)
+### Phase 3 - Advanced Features (Q3 2026)
 - [ ] Dark mode
 - [ ] Multi-language support
 - [ ] Rich text editor
@@ -481,7 +481,7 @@ describe('MicroJournal', () => {
 - [ ] Voice-to-text
 - [ ] Weekly/monthly summaries
 
-### Phase 4 - Enterprise & Mobile (Q4 2025)
+### Phase 4 - Enterprise & Mobile (Q4 2026)
 - [ ] Encrypted storage
 - [ ] Cloud backup
 - [ ] Mobile app

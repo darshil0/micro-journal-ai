@@ -1,9 +1,9 @@
 {
   "name": "micro-journal-ai",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
-  "description": "A minimalist AI-powered journaling web app",
+  "description": "A minimalist AI-powered journaling web app with mood detection and personalized insights",
   "author": "Darshil",
   "license": "MIT",
   "repository": {
@@ -14,6 +14,20 @@
     "url": "https://github.com/darshil0/micro-journal-ai/issues"
   },
   "homepage": "https://github.com/darshil0/micro-journal-ai#readme",
+  "keywords": [
+    "journal",
+    "journaling",
+    "ai",
+    "mental-health",
+    "reflection",
+    "mindfulness",
+    "mood-tracking",
+    "claude",
+    "anthropic",
+    "react",
+    "vite",
+    "tailwindcss"
+  ],
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"

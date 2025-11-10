@@ -20,14 +20,14 @@
 - 🎨 **Beautiful Design**: Calming turquoise gradient theme with smooth animations
 - 🎭 **Automatic Mood Detection**: Classifies entries as positive, reflective, or neutral
 - 🤖 **AI-Powered Insights**: Get thoughtful reflections on your journaling patterns (requires 3+ entries)
-- 💾 **Persistent Storage**: All entries saved locally across sessions using browser Storage API
-- 📚 **Entry History**: Browse all your past entries with beautiful visual cards and date filtering
+- 💾 **Persistent Storage**: All entries saved locally in browser storage (when available)
+- 📚 **Entry History**: Browse all your past entries with beautiful visual cards and entry counter
 - 🔒 **Privacy First**: Zero external data storage — your entries never leave your device
 - 📱 **Responsive Design**: Works beautifully on desktop, tablet, and mobile
 - ⚡ **Fast & Lightweight**: Built with Vite for lightning-fast performance
 - 🎯 **No Account Required**: Start journaling immediately, no signup needed
-- 🛡️ **Robust Error Handling**: Graceful fallbacks and clear error messages
-- 🔄 **Storage Fallback**: Works even if Storage API is unavailable
+- 🛡️ **Robust Error Handling**: Graceful fallbacks with clear error messages
+- 🔄 **Storage Fallback**: Works in session-only mode if persistent storage is unavailable
 
 ---
 
@@ -39,7 +39,7 @@
 | Styling | TailwindCSS 3.4 | Utility-first styling with custom turquoise theme |
 | Icons | Lucide React | Beautiful, consistent iconography |
 | AI Backend | Anthropic Messages API | Insight generation using Claude Sonnet 4 |
-| Storage | Browser Storage API | Local, persistent, privacy-first data storage |
+| Storage | Browser Storage | Local, persistent, privacy-first data storage |
 | Build Tool | Vite 5.4+ | Ultra-fast dev server and optimized production builds |
 
 ---
@@ -48,7 +48,7 @@
 
 ### Prerequisites
 - **Node.js 16+** and npm installed
-- **Modern browser** (Chrome 141+)
+- **Modern browser** (Chrome 141+, Firefox 132+, Safari 18+)
 - **Anthropic API key** (optional, required only for AI insights feature)
 
 ### 1️⃣ Clone the repository
@@ -65,7 +65,13 @@ npm install
 
 ### 3️⃣ Configure environment (Optional but recommended)
 
-Create a `.env` file in the project root:
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and add your API key:
 
 ```bash
 VITE_ANTHROPIC_API_KEY=your_api_key_here
@@ -98,12 +104,17 @@ micro-journal-ai/
 │   ├── main.jsx           # React app entry point
 │   └── index.css          # Tailwind base styles + custom scrollbar
 │
+├── .editorconfig          # Editor configuration
 ├── .env                   # Environment variables (gitignored)
-├── .env.example           # Example environment variables
+├── .env.example           # Example environment variables template
+├── .eslintrc.json         # ESLint configuration
 ├── .gitignore             # Git ignore rules
+├── .prettierrc            # Prettier configuration
 ├── index.html             # HTML entry point
+├── nodemon.json           # Nodemon configuration for backend
 ├── package.json           # Dependencies and scripts
 ├── postcss.config.js      # PostCSS configuration for Tailwind
+├── server.js              # Backend proxy server (for production)
 ├── tailwind.config.js     # Tailwind CSS configuration with custom colors
 ├── vite.config.js         # Vite build configuration
 ├── LICENSE                # MIT License
@@ -120,11 +131,13 @@ micro-journal-ai/
 - **Date Display**: Automatic date stamp with calendar icon showing full date
 - **Smart Validation**: Requires minimum 10 characters and trims whitespace to ensure meaningful entries
 - **Mood Detection**: Automatically analyzes sentiment using enhanced keyword matching (10 positive + 10 negative keywords)
-- **Instant Feedback**: Success notification when entry is saved
+- **Instant Feedback**: Success notification when entry is saved with storage status
 - **Responsive Design**: Optimized for all screen sizes with proper padding
 - **Error Handling**: Clear error messages displayed in red alert banner
+- **Storage Status**: Shows whether entries are persisted or session-only
 
 ### 📚 History View
+- **Entry Counter**: Live count of total entries displayed in navigation tab
 - **Chronological Sorting**: Newest entries appear first with accurate date sorting
 - **Visual Mood Indicators**: Color-coded left borders for quick mood identification
   - 🟢 **Green**: Positive mood (happy, excited, grateful, blessed, thankful)
@@ -146,7 +159,7 @@ micro-journal-ai/
 - **Loading States**: Clear visual feedback with disabled button state while generating insights
 - **Beautiful Presentation**: Insights displayed in gradient-styled card with sparkle icon
 - **On-Demand**: Generate new insights whenever you want fresh perspective
-- **Error Handling**: Clear messages if API key is missing or API request fails
+- **Enhanced Error Handling**: Detailed error messages with specific API failure reasons
 - **Proper API Integration**: Uses correct headers including `x-api-key` and `anthropic-version`
 
 ---
@@ -154,11 +167,13 @@ micro-journal-ai/
 ## 🔒 Privacy & Security
 
 ### Data Storage
-- **100% Local**: All journal entries stored exclusively in browser Storage API
+- **100% Local**: All journal entries stored exclusively in browser storage
 - **No Cloud Sync**: Your data never touches external servers (except AI API calls)
 - **No Tracking**: Zero analytics, cookies, or user tracking
 - **No Account**: No signup, login, or personal information required
-- **Fallback Mode**: If Storage API is unavailable, entries are kept in session memory
+- **Storage Detection**: App automatically detects storage availability and notifies users
+- **Fallback Mode**: If persistent storage is unavailable, entries are kept in session memory
+- **User Notification**: Clear warnings when storage is unavailable
 
 ### AI Insights
 - **Secure HTTPS**: All API requests encrypted in transit
@@ -180,7 +195,7 @@ For production deployment, you MUST implement a backend proxy. A secure backend 
 
 #### Backend Proxy Setup
 
-1. **Navigate to backend directory** (or create one):
+1. **Create backend directory**:
 ```bash
 mkdir backend
 cp server.js backend/
@@ -216,7 +231,7 @@ const response = await fetch('http://localhost:3001/api/insights', {
 
 ### Additional Security Recommendations
 - For sensitive journals, use browser private/incognito mode
-- Storage API data persists until manually cleared (browser settings → Clear browsing data)
+- Browser storage data persists until manually cleared (browser settings → Clear browsing data)
 - Suitable for regulated environments (HIPAA, GDPR) with proper deployment configuration
 - Regular backups recommended (export feature coming soon)
 - Never commit `.env` file to version control
@@ -240,7 +255,8 @@ const response = await fetch('http://localhost:3001/api/insights', {
 2. Create an account or sign in
 3. Navigate to API Keys section
 4. Generate a new API key
-5. Copy the key to your `.env` file
+5. Copy `.env.example` to `.env`
+6. Add your API key to the `.env` file
 
 ### Tailwind Configuration
 
@@ -267,7 +283,7 @@ module.exports = {
 
 ### Custom Scrollbar
 
-The app includes a custom-styled scrollbar (see `src/index.css`) matching the teal theme. Works in WebKit-based browsers (Chrome, Safari, Edge).
+The app includes a custom-styled scrollbar (see `src/index.css`) matching the teal theme. Works in WebKit-based browsers (Chrome, Safari, Edge) and Firefox.
 
 ---
 
@@ -288,7 +304,7 @@ The app includes a custom-styled scrollbar (see `src/index.css`) matching the te
 - **Tone**: Configured for empathetic, supportive, non-judgmental responses
 - **Response Time**: Typically 2-5 seconds depending on entry length
 - **API Version**: Uses Anthropic API version `2023-06-01`
-- **Error Handling**: Graceful fallback with user-friendly error messages
+- **Error Handling**: Graceful fallback with user-friendly, detailed error messages
 
 ---
 
@@ -302,6 +318,7 @@ npm run build        # Creates optimized bundle in /dist
 npm run lint         # Run ESLint checks
 npm run lint:fix     # Auto-fix ESLint issues
 npm run format       # Format code with Prettier
+npm run format:check # Check code formatting
 ```
 
 ### Production Build
@@ -370,12 +387,13 @@ Most platforms support environment variables via their dashboard:
 ### Available Scripts
 
 ```bash
-npm run dev        # Start development server (port 5173, auto-opens browser)
-npm run build      # Build for production (outputs to /dist)
-npm run preview    # Preview production build locally
-npm run lint       # Check code with ESLint
-npm run lint:fix   # Auto-fix ESLint issues
-npm run format     # Format code with Prettier
+npm run dev          # Start development server (port 5173, auto-opens browser)
+npm run build        # Build for production (outputs to /dist)
+npm run preview      # Preview production build locally
+npm run lint         # Check code with ESLint
+npm run lint:fix     # Auto-fix ESLint issues
+npm run format       # Format code with Prettier
+npm run format:check # Check formatting without changing files
 ```
 
 ### Code Quality
@@ -384,7 +402,8 @@ The project includes ESLint and Prettier for code quality:
 
 - **ESLint**: Checks for code errors and enforces best practices
 - **Prettier**: Auto-formats code for consistency
-- Configuration files: `.eslintrc.json`, `.prettierrc`
+- **EditorConfig**: Consistent coding styles across different editors
+- Configuration files: `.eslintrc.json`, `.prettierrc`, `.editorconfig`
 
 ### Testing Setup (Optional)
 
@@ -426,21 +445,21 @@ describe('MicroJournal', () => {
 4. **Wait for Insights**: Write at least 3 entries before requesting AI insights
 5. **Review History**: Periodically browse your history to see patterns
 6. **Privacy Reminder**: Your data stays in your browser
-7. **Backup Strategy**: Take screenshots of important entries
-8. **Consistent Timing**: Journal at the same time daily
+7. **Backup Strategy**: Take screenshots of important entries or use export feature (coming soon)
+8. **Consistent Timing**: Journal at the same time daily for best results
 9. **Stream of Consciousness**: Write freely without overthinking
-10. **Mood Tracking**: Use automatic detection to identify patterns
+10. **Mood Tracking**: Use automatic detection to identify emotional patterns
 
 ---
 
 ## 🐛 Known Issues & Limitations
 
 ### Current Limitations
-- **Browser Storage Limits**: Storage API typically allows 5-10MB per domain
-- **Browser Compatibility**: Requires modern browser with Storage API support
+- **Browser Storage Limits**: Typical limit is 5-10MB per domain
+- **Browser Compatibility**: Requires modern browser with storage support
 - **API Token Limits**: Very long entries (5000+ characters) may exceed limits
 - **No Sync**: Entries don't sync across devices (by design for privacy)
-- **API Key Security**: Direct browser API calls expose key (use backend proxy)
+- **API Key Security**: Direct browser API calls expose key (use backend proxy for production)
 - **Internet Required**: AI insights require active internet connection
 - **No Export**: Currently no export feature (coming soon)
 - **Single Device**: Data only exists on the device/browser where created
@@ -448,8 +467,8 @@ describe('MicroJournal', () => {
 ### Workarounds
 - **Storage Full**: Clear old entries or browser storage
 - **API Errors**: Verify API key is correct and has sufficient credits
-- **No Storage API**: App works in session memory
-- **Long Entries**: Keep entries under 2000 characters
+- **No Storage Available**: App works in session memory with warning notification
+- **Long Entries**: Keep entries under 2000 characters for best results
 
 ---
 
@@ -460,7 +479,10 @@ describe('MicroJournal', () => {
 - [x] Mood detection
 - [x] AI insights integration
 - [x] Responsive design
-- [ ] Export entries (Markdown, PDF)
+- [x] Storage availability detection
+- [x] Error handling improvements
+- [x] Entry counter in navigation
+- [ ] Export entries (Markdown, PDF, JSON)
 - [ ] Search functionality
 - [ ] Entry editing
 - [ ] Entry deletion
@@ -472,21 +494,22 @@ describe('MicroJournal', () => {
 - [ ] Streak tracking
 - [ ] Daily reminders
 - [ ] Keyboard shortcuts
+- [ ] Dark mode
 
 ### Phase 3 - Advanced Features (Q3 2026)
-- [ ] Dark mode
 - [ ] Multi-language support
 - [ ] Rich text editor
 - [ ] Image attachments
 - [ ] Voice-to-text
 - [ ] Weekly/monthly summaries
+- [ ] Data encryption
 
 ### Phase 4 - Enterprise & Mobile (Q4 2026)
-- [ ] Encrypted storage
-- [ ] Cloud backup
-- [ ] Mobile app
+- [ ] Optional cloud backup
+- [ ] Mobile app (React Native)
 - [ ] Browser extension
-- [ ] Team sharing
+- [ ] Collaborative journaling
+- [ ] Advanced analytics
 
 ---
 
@@ -513,6 +536,25 @@ Contributions are warmly welcomed! Whether it's bug fixes, new features, documen
 - Update documentation if needed
 - Keep PRs focused on single features
 - Be respectful in discussions
+
+---
+
+## 📝 Changelog
+
+### v1.0.1 (Latest)
+- **Fixed**: Storage API availability detection
+- **Fixed**: Error handling for non-existent keys on first load
+- **Added**: Storage status warnings for users
+- **Added**: Entry counter in History tab navigation
+- **Improved**: Error messages for AI insights with detailed failure reasons
+- **Improved**: Save confirmation feedback with storage status
+
+### v1.0.0
+- Initial release
+- Core journaling functionality
+- Mood detection
+- AI-powered insights
+- Responsive design
 
 ---
 
@@ -569,17 +611,20 @@ cd micro-journal-ai
 # 2. Install dependencies
 npm install
 
-# 3. (Optional) Add API key for AI insights
-echo "VITE_ANTHROPIC_API_KEY=your_api_key_here" > .env
+# 3. (Optional) Configure API key for AI insights
+cp .env.example .env
+# Edit .env and add: VITE_ANTHROPIC_API_KEY=your_api_key_here
 
 # 4. Start developing
 npm run dev
 ```
 
-
 Your private, AI-powered journal will be live at **http://localhost:5173**
+
 Start writing, reflecting, and growing today! 🌱
+
+---
 
 Made with ❤️ and ☕ by [Darshil](https://github.com/darshil0) for mindful reflection
 
-*Remember: Your mental health journey is unique and valuable. This tool supports self-reflection, not replace professional mental health care.*
+*Remember: Your mental health journey is unique and valuable. This tool supports self-reflection, not professional mental health care.*

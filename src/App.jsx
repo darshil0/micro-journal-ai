@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [storageAvailable, setStorageAvailable] = useState(true);
 
   // Load entries from storage on mount
   useEffect(() => {
@@ -20,8 +21,9 @@ function App() {
   const loadEntries = async () => {
     try {
       // Check if storage API is available
-      if (typeof window.storage === 'undefined') {
+      if (!window.storage) {
         console.warn('Storage API not available. Entries will not persist.');
+        setStorageAvailable(false);
         return;
       }
 
@@ -31,8 +33,13 @@ function App() {
         setEntries(loadedEntries);
       }
     } catch (err) {
-      console.error('Failed to load entries:', err);
-      // Storage API not available or key doesn't exist, entries will stay in state only
+      // Key doesn't exist yet - this is normal for first run
+      if (err.message && err.message.includes('not found')) {
+        console.log('No existing entries found. Starting fresh.');
+      } else {
+        console.error('Failed to load entries:', err);
+        setStorageAvailable(false);
+      }
     }
   };
 
@@ -40,15 +47,16 @@ function App() {
   const saveEntries = async (newEntries) => {
     try {
       // Check if storage API is available
-      if (typeof window.storage === 'undefined') {
+      if (!window.storage) {
         console.warn('Storage API not available. Entries will not persist.');
-        return;
+        return false;
       }
 
       await window.storage.set('journal-entries', JSON.stringify(newEntries));
+      return true;
     } catch (err) {
       console.error('Failed to save entries:', err);
-      // Continue without persistence if storage fails
+      return false;
     }
   };
 
@@ -111,10 +119,16 @@ function App() {
 
     const updatedEntries = [newEntry, ...entries];
     setEntries(updatedEntries);
-    await saveEntries(updatedEntries);
-
+    
+    const saved = await saveEntries(updatedEntries);
+    
     setEntryText('');
-    setSuccess('Entry saved successfully! ✨');
+    
+    if (saved || !storageAvailable) {
+      setSuccess('Entry saved successfully! ✨');
+    } else {
+      setSuccess('Entry saved to session (storage unavailable)');
+    }
 
     setTimeout(() => setSuccess(''), 3000);
   };
@@ -165,7 +179,8 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -177,7 +192,7 @@ function App() {
       setInsight(insightText);
     } catch (err) {
       console.error('Failed to generate insights:', err);
-      setError('Failed to generate insights. Please check your API key and try again.');
+      setError(`Failed to generate insights: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -223,6 +238,11 @@ function App() {
           <p className="text-gray-600">
             Your private space for daily reflection and AI-powered insights
           </p>
+          {!storageAvailable && (
+            <p className="text-sm text-amber-600 mt-2">
+              ⚠️ Storage unavailable - entries will only persist in this session
+            </p>
+          )}
         </header>
 
         {/* Navigation */}
@@ -266,7 +286,7 @@ function App() {
           >
             <span className="flex items-center justify-center gap-2">
               <BookOpen size={20} aria-hidden="true" />
-              History
+              History ({entries.length})
             </span>
           </button>
           <button
@@ -377,7 +397,7 @@ function App() {
               aria-labelledby="history-tab"
               tabIndex={0}
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">History Entries</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Journal History</h2>
 
               {entries.length === 0 ? (
                 <div className="text-center py-12">

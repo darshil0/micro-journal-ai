@@ -145,13 +145,6 @@ function App() {
       return;
     }
 
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      setError('API key not configured. Please add VITE_ANTHROPIC_API_KEY to your .env file.');
-      setLoading(false);
-      return;
-    }
-
     try {
       // Get last 7 entries for analysis
       const recentEntries = entries.slice(0, 7);
@@ -159,22 +152,15 @@ function App() {
         .map((e, i) => `Entry ${i + 1} (${new Date(e.date).toLocaleDateString()}): ${e.text}`)
         .join('\n\n');
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const prompt = `You are a gentle, supportive journal companion. Analyze these recent journal entries and provide a warm, empathetic insight about patterns, themes, or growth you notice. Be encouraging and non-judgmental. Keep your response to 2-3 paragraphs.\n\n${entriesText}`;
+
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [
-            {
-              role: 'user',
-              content: `You are a gentle, supportive journal companion. Analyze these recent journal entries and provide a warm, empathetic insight about patterns, themes, or growth you notice. Be encouraging and non-judgmental. Keep your response to 2-3 paragraphs.\n\n${entriesText}`,
-            },
-          ],
+          prompt
         }),
       });
 
@@ -184,12 +170,20 @@ function App() {
       }
 
       const data = await response.json();
-      const insightText = data.content
-        .filter((block) => block.type === 'text')
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const insightText = data.result?.content
+        ?.filter((block) => block.type === 'text')
         .map((block) => block.text)
         .join('\n');
 
-      setInsight(insightText);
+      if (insightText) {
+        setInsight(insightText);
+      } else {
+        setError('Received an empty insight. Please try again.');
+      }
     } catch (err) {
       console.error('Failed to generate insights:', err);
       setError(`Failed to generate insights: ${err.message}`);

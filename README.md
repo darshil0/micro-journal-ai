@@ -38,7 +38,7 @@
 | Frontend | React 18.3 (Vite 5.4) | SPA framework with fast HMR and modern tooling |
 | Styling | TailwindCSS 3.4 | Utility-first styling with custom turquoise theme |
 | Icons | Lucide React | Beautiful, consistent iconography |
-| AI Backend | Anthropic Messages API | Insight generation using Claude Sonnet 4 |
+| AI Backend | Anthropic Messages API via Secure Node.js Proxy | Secure, server-side insight generation |
 | Storage | Browser Storage | Local, persistent, privacy-first data storage |
 | Build Tool | Vite 5.4+ | Ultra-fast dev server and optimized production builds |
 
@@ -47,7 +47,7 @@
 ## 🚀 Setup & Installation
 
 ### Prerequisites
-- **Node.js 16+** and npm installed
+- **Node.js 18+** and npm installed
 - **Modern browser** (Chrome 141+, Firefox 132+, Safari 18+)
 - **Anthropic API key** (optional, required only for AI insights feature)
 
@@ -74,12 +74,10 @@ cp .env.example .env
 Then edit `.env` and add your API key:
 
 ```bash
-VITE_ANTHROPIC_API_KEY=your_api_key_here
+ANTHROPIC_API_KEY=your_api_key_here
 ```
 
 **Get your API key:** Visit [Anthropic Console](https://console.anthropic.com/) to create an account and generate an API key.
-
-**⚠️ IMPORTANT SECURITY NOTE:** The current implementation uses direct API calls from the browser, which exposes your API key in network requests. This is suitable for personal use and development only. For production deployment, you MUST implement a backend proxy server to secure your API key and prevent unauthorized usage. See the Security section below for implementation details.
 
 ### 4️⃣ Run the development server
 
@@ -87,7 +85,7 @@ VITE_ANTHROPIC_API_KEY=your_api_key_here
 npm run dev
 ```
 
-Your app will be running at: **[http://localhost:5173](http://localhost:5173)**
+Your app will be running at: **[http://localhost:5173](http://localhost:5173)**. The backend proxy will be running on port 3000.
 
 ---
 
@@ -111,10 +109,9 @@ micro-journal-ai/
 ├── .gitignore             # Git ignore rules
 ├── .prettierrc            # Prettier configuration
 ├── index.html             # HTML entry point
-├── nodemon.json           # Nodemon configuration for backend
 ├── package.json           # Dependencies and scripts
-├── postcss.config.js      # PostCSS configuration for Tailwind
-├── server.js              # Backend proxy server (for production)
+├── postcss.config.cjs      # PostCSS configuration for Tailwind
+├── server.js              # Backend proxy server
 ├── tailwind.config.js     # Tailwind CSS configuration with custom colors
 ├── vite.config.js         # Vite build configuration
 ├── LICENSE                # MIT License
@@ -167,76 +164,16 @@ micro-journal-ai/
 ## 🔒 Privacy & Security
 
 ### Data Storage
-- **100% Local**: All journal entries stored exclusively in browser storage
-- **No Cloud Sync**: Your data never touches external servers (except AI API calls)
-- **No Tracking**: Zero analytics, cookies, or user tracking
-- **No Account**: No signup, login, or personal information required
-- **Storage Detection**: App automatically detects storage availability and notifies users
-- **Fallback Mode**: If persistent storage is unavailable, entries are kept in session memory
-- **User Notification**: Clear warnings when storage is unavailable
+- **100% Local**: All journal entries stored exclusively in browser storage.
+- **No Cloud Sync**: Your data never touches external servers.
+- **No Tracking**: Zero analytics, cookies, or user tracking.
+- **No Account**: No signup, login, or personal information required.
 
 ### AI Insights
-- **Secure HTTPS**: All API requests encrypted in transit
-- **Minimal Data**: Only entry text sent for analysis, no metadata or personal information
-- **Temporary**: Anthropic doesn't store API request data per their privacy policy
-- **Optional Feature**: App is fully functional for journaling without AI insights
-- **Environment Variables**: API key stored securely in .env file (not committed to git)
-
-### Security Best Practices
-
-**⚠️ CRITICAL: Production Security Requirements**
-
-The current implementation exposes your Anthropic API key in browser network requests. This is acceptable for:
-- Personal use on your own computer
-- Development and testing
-- Trusted local environments
-
-For production deployment, you MUST implement a backend proxy. A secure backend proxy server (`server.js`) is included in this repository.
-
-#### Backend Proxy Setup
-
-1. **Create backend directory**:
-```bash
-mkdir backend
-cp server.js backend/
-cd backend
-```
-
-2. **Install dependencies**:
-```bash
-npm install express cors dotenv
-```
-
-3. **Create .env file**:
-```bash
-ANTHROPIC_API_KEY=your_api_key_here
-PORT=3001
-FRONTEND_URL=http://localhost:5173
-```
-
-4. **Start the proxy server**:
-```bash
-node server.js
-```
-
-5. **Update frontend to use proxy**: Modify the API call in `src/App.jsx`:
-```javascript
-// Change from direct API call to proxy
-const response = await fetch('http://localhost:3001/api/insights', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ entries: recentEntries })
-});
-```
-
-### Additional Security Recommendations
-- For sensitive journals, use browser private/incognito mode
-- Browser storage data persists until manually cleared (browser settings → Clear browsing data)
-- Suitable for regulated environments (HIPAA, GDPR) with proper deployment configuration
-- Regular backups recommended (export feature coming soon)
-- Never commit `.env` file to version control
-- Use rate limiting on backend proxy to prevent abuse
-- Implement request validation and sanitization
+- **Secure Backend Proxy**: All requests to the Anthropic API are routed through a secure backend proxy (`server.js`). Your API key is never exposed to the browser.
+- **Secure HTTPS**: All API requests are encrypted in transit.
+- **Minimal Data**: Only the text of your recent entries is sent for analysis, with no personal metadata.
+- **Environment Variables**: The API key is stored securely in a local `.env` file and is never committed to version control.
 
 ---
 
@@ -244,19 +181,12 @@ const response = await fetch('http://localhost:3001/api/insights', {
 
 ### Environment Variables
 
-| Variable                 | Required | Default | Description |
-| ------------------------ | -------- | ------- | ----------- |
-| `VITE_ANTHROPIC_API_KEY` | Optional | None    | Your Anthropic API key for AI insights feature |
+| Variable              | Required | Default | Description |
+| --------------------- | -------- | ------- | ----------- |
+| `ANTHROPIC_API_KEY`   | Optional | None    | Your Anthropic API key for AI insights feature. |
+| `PORT`                | Optional | 3000    | The port for the backend proxy server. |
 
-**Without API Key**: The app works perfectly for journaling and mood tracking, but the AI Insights feature will show an error when attempting to generate insights.
-
-**Setting up your API Key:**
-1. Visit [Anthropic Console](https://console.anthropic.com/)
-2. Create an account or sign in
-3. Navigate to API Keys section
-4. Generate a new API key
-5. Copy `.env.example` to `.env`
-6. Add your API key to the `.env` file
+**Without an API Key**: The app works perfectly for journaling and mood tracking, but the AI Insights feature will show an error when attempting to generate insights.
 
 ### Tailwind Configuration
 
@@ -312,9 +242,10 @@ The app includes a custom-styled scrollbar (see `src/index.css`) matching the te
 
 ### Development Commands
 ```bash
-npm run dev          # Start dev server with hot reload (port 5173)
+npm run dev          # Start dev server with hot reload (frontend on port 5173, backend on 3000)
 npm run preview      # Preview production build locally
 npm run build        # Creates optimized bundle in /dist
+npm run start        # Start the production server
 npm run lint         # Run ESLint checks
 npm run lint:fix     # Auto-fix ESLint issues
 npm run format       # Format code with Prettier
@@ -324,61 +255,31 @@ npm run format:check # Check code formatting
 ### Production Build
 ```bash
 npm run build
+npm start
 ```
 
-The `dist/` folder contains production-ready static files that can be deployed anywhere. The build is optimized with:
+The `dist/` folder contains the production-ready static frontend, which is served by the integrated Express server. The build is optimized with:
 - Minified JavaScript and CSS
 - Tree-shaking for smaller bundle size
 - Optimized assets and images
-- Source maps for debugging (configurable)
 
 ### Deployment Options
 
-#### ⚡ Vercel (Recommended)
-```bash
-npm install -g vercel
-vercel
-```
-
-Add environment variables in Vercel dashboard:
-1. Go to Project Settings → Environment Variables
-2. Add `VITE_ANTHROPIC_API_KEY` with your API key
-3. Redeploy
-
-#### 🌐 Netlify
-```bash
-npm install -g netlify-cli
-netlify deploy --prod
-```
-
-Configure in `netlify.toml`:
-```toml
-[build]
-  command = "npm run build"
-  publish = "dist"
-```
-
-#### 📄 GitHub Pages
-```bash
-npm run build
-# Configure GitHub Pages to serve from /dist or use gh-pages package
-```
+#### ⚡ Vercel / Netlify / Render (Recommended)
+These platforms can automatically detect and deploy Node.js applications. Simply connect your Git repository and configure the following:
+- **Build Command**: `npm run build`
+- **Start Command**: `npm start`
+- **Environment Variables**: Add `ANTHROPIC_API_KEY` and `PORT` in the project settings.
 
 #### ☁️ Other Platforms
-- **Cloudflare Pages**: Fast global CDN with automatic deployments
-- **Railway**: Simple deployment with built-in environment variables
-- **Render**: Free tier available with automatic HTTPS
-- **AWS S3 + CloudFront**: Enterprise-grade hosting with CDN
-- **Docker**: Containerized deployment for self-hosting
+- **Railway / Heroku**: Similar to the above, configure the start command and environment variables.
+- **Docker**: You can create a `Dockerfile` to containerize the application for deployment on any platform that supports Docker.
 
 ### Environment Variables in Production
 
 Most platforms support environment variables via their dashboard:
-1. Add `VITE_ANTHROPIC_API_KEY` in platform settings
-2. Rebuild/redeploy the application
-3. Variables will be bundled at build time (Vite requirement)
-
-**Important**: Vite environment variables are embedded during build time, not runtime. Always rebuild after changing environment variables.
+1. Add `ANTHROPIC_API_KEY` in platform settings.
+2. The server will use this variable at runtime.
 
 ---
 
@@ -387,8 +288,9 @@ Most platforms support environment variables via their dashboard:
 ### Available Scripts
 
 ```bash
-npm run dev          # Start development server (port 5173, auto-opens browser)
+npm run dev          # Start development server (frontend on port 5173, backend on 3000)
 npm run build        # Build for production (outputs to /dist)
+npm run start        # Start the production server
 npm run preview      # Preview production build locally
 npm run lint         # Check code with ESLint
 npm run lint:fix     # Auto-fix ESLint issues
@@ -459,7 +361,6 @@ describe('MicroJournal', () => {
 - **Browser Compatibility**: Requires modern browser with storage support
 - **API Token Limits**: Very long entries (5000+ characters) may exceed limits
 - **No Sync**: Entries don't sync across devices (by design for privacy)
-- **API Key Security**: Direct browser API calls expose key (use backend proxy for production)
 - **Internet Required**: AI insights require active internet connection
 - **No Export**: Currently no export feature (coming soon)
 - **Single Device**: Data only exists on the device/browser where created
@@ -613,13 +514,13 @@ npm install
 
 # 3. (Optional) Configure API key for AI insights
 cp .env.example .env
-# Edit .env and add: VITE_ANTHROPIC_API_KEY=your_api_key_here
+# Edit .env and add: ANTHROPIC_API_KEY=your_api_key_here
 
 # 4. Start developing
 npm run dev
 ```
 
-Your private, AI-powered journal will be live at **http://localhost:5173**
+Your private, AI-powered journal will be live at **http://localhost:5173**. The backend proxy will be running on port 3000.
 
 Start writing, reflecting, and growing today! 🌱
 

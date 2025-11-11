@@ -274,16 +274,3 @@ Your data stays private — always.
 Made with ❤️ by [Darshil](https://github.com/darshil0)
 
 ````
-
----
-
-### ✅ Next Steps
-1. Save this file as `README.md` in your project root.  
-2. Run:
-   ```bash
-   git add README.md
-   git commit -m "Clean and resolve README.md merge conflict"
-   git push origin main
-````
-
-3. Verify on GitHub — no more “conflicts must be resolved” message.

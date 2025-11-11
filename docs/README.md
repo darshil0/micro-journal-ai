@@ -2,12 +2,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![CI/CD](https://github.com/darshil0/AI-Evaluation-QA/workflows/evaluate/badge.svg)](https://github.com/darshil0/AI-Evaluation-QA/actions)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/darshil0/AI-Evaluation-QA/actions)
 
 A production-grade framework for evaluating AI model responses through structured prompts, rubric-based scoring, and automated reporting. This project brings enterprise quality assurance methodologies to AI system validation, ensuring responses meet accuracy, reasoning, and quality standards.
 
 **Author:** Darshil  
-**Version:** 1.0  
+**Version:** 2.1.3  
 **License:** MIT
 
 ---
@@ -478,4 +478,4 @@ For questions, collaboration opportunities, or bug reports, please open an issue
 
 ---
 
-**Version 1.0** - Last Updated: November 2025
+**Version 2.1.3** - Last Updated: November 2025

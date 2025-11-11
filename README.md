@@ -74,3 +74,4 @@ This project is a web-based journaling application that uses AI to provide users
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+A minimalist AI-powered journaling web app built with React, Vite, and TailwindCSS. Capture daily reflections, generate personalized insights using Anthropic’s Claude API, and keep all data private…

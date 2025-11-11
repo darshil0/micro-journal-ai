@@ -7,7 +7,7 @@
 A production-grade framework for evaluating AI model responses through structured prompts, rubric-based scoring, and automated reporting. This project brings enterprise quality assurance methodologies to AI system validation, ensuring responses meet accuracy, reasoning, and quality standards.
 
 **Author:** Darshil  
-**Version:** 1.0  
+**Version:** 2.1.3  
 **License:** MIT
 
 ---

@@ -478,4 +478,4 @@ For questions, collaboration opportunities, or bug reports, please open an issue
 
 ---
 
-**Version 1.0** - Last Updated: November 2025
+**Version 2.1.3** - Last Updated: November 2025

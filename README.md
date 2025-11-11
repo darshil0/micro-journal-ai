@@ -272,5 +272,3 @@ Your data stays private — always.
 ---
 
 Made with ❤️ by [Darshil](https://github.com/darshil0)
-
-````

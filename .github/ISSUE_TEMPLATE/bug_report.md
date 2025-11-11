@@ -19,3 +19,11 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Error Messages**
+**Environment:**
+ - OS: [e.g. macOS 13.0]
+ - Python Version: [e.g. 3.10.5]
+ - Framework Version: [e.g. 1.0.0]
+ - Model: [e.g. gpt-4]
+
+**Additional context**
+Add any other context about the problem here.

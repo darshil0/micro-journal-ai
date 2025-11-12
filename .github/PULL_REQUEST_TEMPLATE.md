@@ -15,11 +15,11 @@ Closes #XX
 ## Testing
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
-- [ ] All tests passing (`pytest tests/`)
+- [ ] All tests passing (`npm test`)
 - [ ] Manual testing completed
 
 ## Checklist
-- [ ] Code follows project style guidelines (`black`, `flake8`)
+- [ ] Code follows project style guidelines (`eslint`, `prettier`)
 - [ ] Self-review completed
 - [ ] Documentation updated (if needed)
 - [ ] No new warnings generated

@@ -1,513 +1,496 @@
-import { useState, useEffect } from 'react';
-import { Calendar, BookOpen, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Calendar, 
+  BookOpen, 
+  Sparkles, 
+  Mic, 
+  MicOff, 
+  Search, 
+  Trash2, 
+  Save, 
+  Zap,
+  LogOut
+} from 'lucide-react';
 
-function App() {
-  // State management
+// Firebase Imports
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, 
+  signInAnonymously, 
+  onAuthStateChanged,
+  signOut
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  query, 
+  orderBy, 
+  onSnapshot, 
+  deleteDoc, 
+  doc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+
+// --- CONFIGURATION & UTILS ---
+
+// Gemini API Helper
+const generateGeminiInsight = async (entriesText) => {
+  const apiKey = ""; // Injected by environment
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  
+  const systemPrompt = `You are a compassionate, insightful therapy assistant. 
+  Analyze the user's recent journal entries. 
+  1. Identify the core emotional themes (e.g., "Anxiety about future", "Gratitude for small things").
+  2. Spot patterns in their thinking (e.g., "You tend to catastrophicize when tired").
+  3. Provide one actionable, gentle suggestion for the next week.
+  4. Keep the tone warm, safe, and encouraging. 
+  5. Format with bold headings and bullet points.`;
+
+  const payload = {
+    contents: [{ parts: [{ text: `Here are my recent journal entries:\n\n${entriesText}` }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] }
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) throw new Error(`Gemini API Error: ${response.statusText}`);
+    
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate an insight this time.";
+  } catch (error) {
+    console.error("AI Error:", error);
+    throw error;
+  }
+};
+
+// --- MAIN COMPONENT ---
+
+export default function MicroJournalAI() {
+  // -- State --
+  const [user, setUser] = useState(null);
   const [view, setView] = useState('write'); // 'write' | 'history' | 'insights'
-  const [entryText, setEntryText] = useState('');
   const [entries, setEntries] = useState([]);
-  const [insight, setInsight] = useState('');
+  const [text, setText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [insight, setInsight] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [storageAvailable, setStorageAvailable] = useState(true);
+  const [recognition, setRecognition] = useState(null);
 
-  // Load entries from storage on mount
+  // Firebase Refs
+  const [db, setDb] = useState(null);
+  const [auth, setAuth] = useState(null);
+  const appId = typeof __app_id !== 'undefined' ? __app_id : 'micro-journal-v2';
+
+  // -- Initialization --
   useEffect(() => {
-    loadEntries();
+    // 1. Init Firebase
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const authInstance = getAuth(app);
+    const dbInstance = getFirestore(app);
+    
+    setAuth(authInstance);
+    setDb(dbInstance);
+
+    // 2. Auth Listener
+    const unsubscribeAuth = onAuthStateChanged(authInstance, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        // Auto-login anonymously if not logged in
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            signInWithCustomToken(authInstance, __initial_auth_token);
+        } else {
+            signInAnonymously(authInstance).catch(err => setError(err.message));
+        }
+      }
+    });
+
+    // 3. Setup Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      
+      recognitionInstance.onresult = (event) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + ' ';
+          }
+        }
+        if (finalTranscript) {
+          setText(prev => prev + finalTranscript);
+        }
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error("Speech error", event.error);
+        setIsRecording(false);
+      };
+
+      setRecognition(recognitionInstance);
+    }
+
+    return () => unsubscribeAuth();
   }, []);
 
-  // Load entries from storage API
-  const loadEntries = async () => {
-    try {
-      // Check if storage API is available
-      if (!window.storage) {
-        console.warn('Storage API not available. Entries will not persist.');
-        setStorageAvailable(false);
-        return;
-      }
+  // -- Firestore Sync --
+  useEffect(() => {
+    if (!user || !db) return;
 
-      const result = await window.storage.get('journal-entries');
-      if (result && result.value) {
-        const loadedEntries = JSON.parse(result.value);
-        setEntries(loadedEntries);
-      }
-    } catch (err) {
-      // Key doesn't exist yet - this is normal for first run
-      if (err.message && err.message.includes('not found')) {
-        console.log('No existing entries found. Starting fresh.');
-      } else {
-        console.error('Failed to load entries:', err);
-        setStorageAvailable(false);
-      }
-    }
-  };
+    const q = query(
+      collection(db, 'artifacts', appId, 'users', user.uid, 'journal_entries'),
+      orderBy('createdAt', 'desc')
+    );
 
-  // Save entries to storage API
-  const saveEntries = async (newEntries) => {
-    try {
-      // Check if storage API is available
-      if (!window.storage) {
-        console.warn('Storage API not available. Entries will not persist.');
-        return false;
-      }
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loadedEntries = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Handle simple date formatting from Firestore timestamp
+        date: doc.data().createdAt?.toDate() || new Date()
+      }));
+      setEntries(loadedEntries);
+    }, (err) => {
+      setError("Could not load entries: " + err.message);
+    });
 
-      await window.storage.set('journal-entries', JSON.stringify(newEntries));
-      return true;
-    } catch (err) {
-      console.error('Failed to save entries:', err);
-      return false;
-    }
-  };
+    return () => unsubscribe();
+  }, [user, db]);
 
-  // Detect mood based on keywords
-  const detectMood = (text) => {
-    const lowerText = text.toLowerCase();
+  // -- Logic --
 
-    const positiveKeywords = [
-      'happy',
-      'excited',
-      'grateful',
-      'blessed',
-      'thankful',
-      'joyful',
-      'amazing',
-      'wonderful',
-      'love',
-      'great',
-    ];
-
-    const negativeKeywords = [
-      'sad',
-      'anxious',
-      'worried',
-      'stressed',
-      'tired',
-      'overwhelmed',
-      'difficult',
-      'tough',
-      'hard',
-      'frustrated',
-    ];
-
-    const hasPositive = positiveKeywords.some((word) => lowerText.includes(word));
-    const hasNegative = negativeKeywords.some((word) => lowerText.includes(word));
-
-    if (hasPositive && !hasNegative) return 'positive';
-    if (hasNegative) return 'reflective';
-    return 'neutral';
-  };
-
-  // Handle saving new entry
-  const handleSaveEntry = async () => {
-    setError('');
-    setSuccess('');
-
-    const trimmedText = entryText.trim();
-
-    if (trimmedText.length < 10) {
-      setError('Please write at least 10 characters for a meaningful entry.');
-      return;
-    }
-
-    const newEntry = {
-      id: Date.now(),
-      text: trimmedText,
-      date: new Date().toISOString(),
-      mood: detectMood(trimmedText),
-    };
-
-    const updatedEntries = [newEntry, ...entries];
-    setEntries(updatedEntries);
-    
-    const saved = await saveEntries(updatedEntries);
-    
-    setEntryText('');
-    
-    if (saved || !storageAvailable) {
-      setSuccess('Entry saved successfully! ✨');
-    } else {
-      setSuccess('Entry saved to session (storage unavailable)');
-    }
-
-    setTimeout(() => setSuccess(''), 3000);
-  };
-
-  // Generate AI insights
-  const generateInsights = async () => {
-    setError('');
+  const handleSave = async () => {
+    if (!text.trim()) return;
     setLoading(true);
-    setInsight('');
-
-    if (entries.length < 3) {
-      setError('Write at least 3 entries to generate insights.');
-      setLoading(false);
-      return;
-    }
-
+    
     try {
-      // Get last 7 entries for analysis
-      const recentEntries = entries.slice(0, 7);
-      const entriesText = recentEntries
-        .map((e, i) => `Entry ${i + 1} (${new Date(e.date).toLocaleDateString()}): ${e.text}`)
-        .join('\n\n');
-
-      const prompt = `You are a gentle, supportive journal companion. Analyze these recent journal entries and provide a warm, empathetic insight about patterns, themes, or growth you notice. Be encouraging and non-judgmental. Keep your response to 2-3 paragraphs.\n\n${entriesText}`;
-
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt
-        }),
+      // Simple local mood detection for immediate UI feedback
+      // (The AI Insight feature does the heavy lifting later)
+      const mood = detectMood(text);
+      
+      await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'journal_entries'), {
+        text: text,
+        mood: mood,
+        createdAt: serverTimestamp(),
+        source: isRecording ? 'voice' : 'text' // Track if it was spoken
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const insightText = data.result?.content
-        ?.filter((block) => block.type === 'text')
-        .map((block) => block.text)
-        .join('\n');
-
-      if (insightText) {
-        setInsight(insightText);
-      } else {
-        setError('Received an empty insight. Please try again.');
-      }
+      
+      setText('');
+      setSuccessMsg('Entry saved securely to cloud.');
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
-      console.error('Failed to generate insights:', err);
-      setError(`Failed to generate insights: ${err.message}`);
+      setError("Failed to save: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle keyboard navigation for tabs
-  const handleTabKeyDown = (e, targetView) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setView(targetView);
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this memory?')) return;
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'journal_entries', id));
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  // Mood color mapping
-  const getMoodColor = (mood) => {
-    switch (mood) {
-      case 'positive':
-        return 'border-green-500';
-      case 'reflective':
-        return 'border-blue-500';
-      default:
-        return 'border-gray-400';
+  const handleGenerateInsights = async () => {
+    if (entries.length < 1) return;
+    setAiLoading(true);
+    setError('');
+    
+    try {
+      // Take last 10 entries for context
+      const recentEntriesText = entries.slice(0, 10).map(e => 
+        `[${e.date.toLocaleDateString()}]: ${e.text}`
+      ).join('\n\n');
+
+      const aiResponse = await generateGeminiInsight(recentEntriesText);
+      setInsight(aiResponse);
+    } catch (err) {
+      setError("AI generation failed. Please try again in a moment.");
+    } finally {
+      setAiLoading(false);
     }
   };
 
-  const getMoodBgColor = (mood) => {
-    switch (mood) {
-      case 'positive':
-        return 'bg-green-100 text-green-800';
-      case 'reflective':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const toggleRecording = () => {
+    if (!recognition) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+    if (isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      recognition.start();
+      setIsRecording(true);
     }
   };
 
+  // Helper: Simple keyword mood detector (legacy support)
+  const detectMood = (txt) => {
+    const lower = txt.toLowerCase();
+    if (['sad', 'anxious', 'tired', 'hurt', 'bad'].some(w => lower.includes(w))) return 'reflective';
+    if (['happy', 'great', 'good', 'excited', 'love'].some(w => lower.includes(w))) return 'positive';
+    return 'neutral';
+  };
+
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Filtered entries for History view
+  const filteredEntries = entries.filter(e => 
+    e.text.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // -- Render --
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-teal-50 to-cyan-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+      <div className="max-w-2xl mx-auto p-4 md:p-6">
+        
         {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-teal-800 mb-2">🧠 Micro Journal AI</h1>
-          <p className="text-gray-600">
-            Your private space for daily reflection and AI-powered insights
-          </p>
-          {!storageAvailable && (
-            <p className="text-sm text-amber-600 mt-2">
-              ⚠️ Storage unavailable - entries will only persist in this session
-            </p>
-          )}
+        <header className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <span className="text-indigo-600">Micro</span>Journal
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full font-semibold tracking-wide">AI</span>
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">Capture thoughts. Discover patterns.</p>
+          </div>
+          
+          {/* User Status / Auth */}
+          <div className="text-xs text-right">
+            {user ? (
+              <span className="text-green-600 flex items-center gap-1 justify-end">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Cloud Sync Active
+              </span>
+            ) : (
+              <span className="text-amber-600">Connecting...</span>
+            )}
+          </div>
         </header>
 
-        {/* Navigation */}
-        <nav
-          className="flex gap-2 mb-6 bg-white rounded-xl p-2 shadow-md"
-          role="tablist"
-          aria-label="Journal sections"
-        >
-          <button
-            onClick={() => setView('write')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'write')}
-            role="tab"
-            aria-selected={view === 'write'}
-            aria-controls="write-panel"
-            id="write-tab"
-            tabIndex={view === 'write' ? 0 : -1}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-              view === 'write'
-                ? 'bg-teal-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <span className="flex items-center justify-center gap-2">
-              <Calendar size={20} aria-hidden="true" />
-              Write
-            </span>
-          </button>
-          <button
-            onClick={() => setView('history')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'history')}
-            role="tab"
-            aria-selected={view === 'history'}
-            aria-controls="history-panel"
-            id="history-tab"
-            tabIndex={view === 'history' ? 0 : -1}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-              view === 'history'
-                ? 'bg-teal-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <span className="flex items-center justify-center gap-2">
-              <BookOpen size={20} aria-hidden="true" />
-              History ({entries.length})
-            </span>
-          </button>
-          <button
-            onClick={() => setView('insights')}
-            onKeyDown={(e) => handleTabKeyDown(e, 'insights')}
-            role="tab"
-            aria-selected={view === 'insights'}
-            aria-controls="insights-panel"
-            id="insights-tab"
-            tabIndex={view === 'insights' ? 0 : -1}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-              view === 'insights'
-                ? 'bg-teal-600 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <span className="flex items-center justify-center gap-2">
-              <Sparkles size={20} aria-hidden="true" />
-              Insights
-            </span>
-          </button>
+        {/* Navigation Tabs */}
+        <nav className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200 mb-6">
+          {[
+            { id: 'write', icon: Calendar, label: 'Write' },
+            { id: 'history', icon: BookOpen, label: 'History' },
+            { id: 'insights', icon: Sparkles, label: 'Insights' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setView(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                view === tab.id 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
-        {/* Main Content */}
-        <main className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-          {/* Error Message */}
-          {error && (
-            <div
-              className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
-              role="alert"
-              aria-live="assertive"
-            >
-              <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} aria-hidden="true" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
+        {/* Error & Success Toasts */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-200 flex items-center gap-2">
+            <Zap size={16} /> {error}
+          </div>
+        )}
+        {successMsg && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-xl text-sm border border-green-200 flex items-center gap-2">
+            <Zap size={16} /> {successMsg}
+          </div>
+        )}
 
-          {/* Success Message */}
-          {success && (
-            <div
-              className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3"
-              role="status"
-              aria-live="polite"
-            >
-              <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} aria-hidden="true" />
-              <p className="text-green-700">{success}</p>
-            </div>
-          )}
-
-          {/* Write View */}
-          {view === 'write' && (
-            <div
-              role="tabpanel"
-              id="write-panel"
-              aria-labelledby="write-tab"
-              tabIndex={0}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="text-teal-600" size={24} aria-hidden="true" />
-                <h2 className="text-2xl font-bold text-gray-800">Today&apos;s Entry</h2>
-              </div>
-              <p className="text-gray-600 mb-4">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-
-              <label htmlFor="entry-textarea" className="sr-only">
-                Journal entry text
-              </label>
-              <textarea
-                id="entry-textarea"
-                value={entryText}
-                onChange={(e) => setEntryText(e.target.value)}
-                placeholder="How are you feeling today? What's on your mind?"
-                className="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:outline-none resize-none"
-                aria-describedby="char-count"
-              />
-
-              <div className="flex justify-between items-center mt-4">
-                <span id="char-count" className="text-sm text-gray-500">
-                  {entryText.length} characters
+        {/* --- VIEW: WRITE --- */}
+        {view === 'write' && (
+          <div className="animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <span className="text-sm font-medium text-slate-500">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </span>
+                <div className="flex gap-2">
+                   <button
+                    onClick={toggleRecording}
+                    className={`p-2 rounded-full transition-colors ${
+                      isRecording 
+                        ? 'bg-red-100 text-red-600 animate-pulse' 
+                        : 'bg-white text-slate-400 hover:text-indigo-600 border border-slate-200'
+                    }`}
+                    title="Voice Input"
+                  >
+                    {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
+                </div>
+              </div>
+              
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={isRecording ? "Listening... speak your thoughts..." : "How are you feeling right now?"}
+                className="w-full h-64 p-6 text-lg leading-relaxed resize-none focus:outline-none placeholder:text-slate-300 text-slate-700"
+              />
+              
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-xs text-slate-400 font-mono">{text.length} chars</span>
                 <button
-                  onClick={handleSaveEntry}
-                  disabled={entryText.trim().length < 10}
-                  className="bg-teal-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  aria-label={
-                    entryText.trim().length < 10
-                      ? 'Save entry (disabled, minimum 10 characters required)'
-                      : 'Save entry'
-                  }
+                  onClick={handleSave}
+                  disabled={!text.trim() || loading}
+                  className={`px-6 py-2.5 rounded-xl font-semibold text-white shadow-sm flex items-center gap-2 transition-all ${
+                    !text.trim() || loading
+                      ? 'bg-slate-300 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:-translate-y-0.5'
+                  }`}
                 >
-                  Save Entry
+                  {loading ? 'Saving...' : <><Save size={18} /> Save Entry</>}
                 </button>
               </div>
             </div>
-          )}
 
-          {/* History View */}
-          {view === 'history' && (
-            <div
-              role="tabpanel"
-              id="history-panel"
-              aria-labelledby="history-tab"
-              tabIndex={0}
-            >
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Journal History</h2>
+            {/* Prompt Suggestion */}
+            {!text && (
+              <div className="mt-6 text-center">
+                <p className="text-slate-400 text-sm mb-2">Need inspiration?</p>
+                <button 
+                  onClick={() => setText("Today, I felt proud when...")}
+                  className="text-indigo-500 hover:text-indigo-700 text-sm font-medium hover:underline"
+                >
+                  "Today, I felt proud when..."
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
+        {/* --- VIEW: HISTORY --- */}
+        {view === 'history' && (
+          <div className="animate-in fade-in duration-300 space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search your memories..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+            </div>
+
+            <div className="space-y-4">
               {entries.length === 0 ? (
-                <div className="text-center py-12">
-                  <BookOpen className="mx-auto text-gray-300 mb-4" size={64} aria-hidden="true" />
-                  <p className="text-gray-500 mb-4">
-                    No entries yet. Start writing to see your journey!
-                  </p>
-                  <button
-                    onClick={() => setView('write')}
-                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-700 transition-colors"
-                  >
-                    Write First Entry
-                  </button>
+                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <BookOpen className="text-slate-300" size={24} />
+                  </div>
+                  <p className="text-slate-500">Your journal is empty.</p>
+                  <button onClick={() => setView('write')} className="text-indigo-600 font-medium mt-2 hover:underline">Write your first entry</button>
                 </div>
+              ) : filteredEntries.length === 0 ? (
+                <p className="text-center text-slate-500 py-8">No matching entries found.</p>
               ) : (
-                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                  {entries.map((entry) => (
-                    <article
-                      key={entry.id}
-                      className={`border-l-4 ${getMoodColor(entry.mood)} bg-gray-50 p-4 rounded-r-lg shadow-sm`}
-                      aria-label={`Journal entry from ${new Date(entry.date).toLocaleDateString()}`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <time
-                          className="text-sm text-gray-500"
-                          dateTime={entry.date}
-                        >
-                          {new Date(entry.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </time>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${getMoodBgColor(entry.mood)}`}
-                          aria-label={`Mood: ${entry.mood}`}
-                        >
-                          {entry.mood.toUpperCase()}
+                filteredEntries.map(entry => (
+                  <div key={entry.id} className="group bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-200 transition-all">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          {entry.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          entry.mood === 'positive' ? 'bg-emerald-100 text-emerald-700' :
+                          entry.mood === 'reflective' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {entry.mood}
                         </span>
                       </div>
-                      <p className="text-gray-700 whitespace-pre-wrap">{entry.text}</p>
-                    </article>
+                      <button 
+                        onClick={() => handleDelete(entry.id)}
+                        className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete Entry"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{entry.text}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* --- VIEW: INSIGHTS --- */}
+        {view === 'insights' && (
+          <div className="animate-in fade-in duration-300">
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+                  <Sparkles className="text-yellow-300" size={24} />
+                </div>
+                <h2 className="text-xl font-bold">AI Companion</h2>
+              </div>
+              <p className="text-indigo-100 mb-6 leading-relaxed">
+                I can analyze your last 10 entries to find patterns, offer comfort, and suggest small steps forward.
+              </p>
+              <button
+                onClick={handleGenerateInsights}
+                disabled={aiLoading || entries.length === 0}
+                className="w-full bg-white text-indigo-600 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                {aiLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span>
+                    Analyzing...
+                  </>
+                ) : (
+                  "Generate New Insights"
+                )}
+              </button>
+            </div>
+
+            {insight ? (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h3 className="font-serif text-xl text-slate-800 mb-4 pb-2 border-b border-slate-100">Analysis Results</h3>
+                <div className="prose prose-indigo prose-sm max-w-none text-slate-600">
+                  {insight.split('\n').map((line, i) => (
+                    <p key={i} className="mb-2">{line}</p>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Insights View */}
-          {view === 'insights' && (
-            <div
-              role="tabpanel"
-              id="insights-panel"
-              aria-labelledby="insights-tab"
-              tabIndex={0}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="text-teal-600" size={24} aria-hidden="true" />
-                <h2 className="text-2xl font-bold text-gray-800">AI Insights</h2>
               </div>
-
-              <p className="text-gray-600 mb-6">
-                Get personalized reflections on your journaling patterns.
-                {entries.length < 3 && ` You have ${entries.length} of 3 entries needed.`}
-              </p>
-
-              <button
-                onClick={generateInsights}
-                disabled={loading || entries.length < 3}
-                className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-6 py-4 rounded-xl font-medium hover:from-teal-700 hover:to-cyan-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md mb-6"
-                aria-label={
-                  entries.length < 3
-                    ? `Generate new insight (disabled, ${3 - entries.length} more entries needed)`
-                    : loading
-                    ? 'Generating insights, please wait'
-                    : 'Generate new insight'
-                }
-                aria-busy={loading}
-              >
-                {loading ? 'Generating Insights...' : 'Generate New Insight'}
-              </button>
-
-              {insight && (
-                <div
-                  className="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl border-2 border-teal-200"
-                  role="region"
-                  aria-label="AI generated insight"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="text-teal-600" size={20} aria-hidden="true" />
-                    <h3 className="font-semibold text-teal-800">Your Insight</h3>
-                  </div>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{insight}</p>
+            ) : (
+               entries.length > 0 && !aiLoading && (
+                <div className="text-center text-slate-400 py-8">
+                   Tap the button above to reflect on your journey.
                 </div>
-              )}
-            </div>
-          )}
-        </main>
+               )
+            )}
+            
+            {entries.length === 0 && (
+               <div className="text-center text-slate-400 py-8">
+                 Write a few entries first to unlock AI insights.
+               </div>
+            )}
+          </div>
+        )}
 
-        {/* Footer */}
-        <footer className="text-center mt-8 text-gray-600 text-sm">
-          <p>Made with ❤️ for mindful reflection • All data stored locally in your browser</p>
-          <p className="mt-2">
-            <a
-              href="https://github.com/darshil0/micro-journal-ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-teal-600 hover:text-teal-700 underline"
-            >
-              View on GitHub
-            </a>
-          </p>
-        </footer>
       </div>
     </div>
   );
 }
-
-export default App;

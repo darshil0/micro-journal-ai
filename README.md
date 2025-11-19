@@ -1,16 +1,21 @@
 # Micro Journal AI
 
-A minimalist AI-powered journaling web app with mood detection and personalized insights.
+A minimalist, AI-powered journaling web app with mood detection and personalized insights.
+
+**Version: 2.0.0**
 
 ## Overview
 
 This project is a web-based journaling application that uses AI to provide users with insights into their moods and thoughts. It features a simple and intuitive interface for writing and reviewing journal entries. The backend is powered by Node.js and Express, and the frontend is built with React and Vite.
+
+**Note:** All journal entries are stored locally in your browser's local storage. No data is ever sent to a server.
 
 ## Features
 
 -   **AI-Powered Insights:** Get personalized insights and mood analysis for your journal entries.
 -   **Simple Interface:** A clean and minimalist interface for a focused writing experience.
 -   **Secure Backend:** A secure backend proxy to protect your API keys.
+-   **100% Private:** All journal entries are stored locally in your browser.
 -   **Easy Setup:** Get up and running with just a few commands.
 
 ## Getting Started
@@ -70,6 +75,17 @@ This project is a web-based journaling application that uses AI to provide users
 -   `npm run lint:fix`: Lints and fixes the source code.
 -   `npm run format`: Formats the source code.
 -   `npm run format:check`: Checks the formatting of the source code.
+
+## Changelog
+
+**v2.0.0**
+- Overhauled the frontend architecture from a single monolithic component to a modular, component-based structure.
+- Removed the Firebase dependency and replaced it with local storage for all journal entries.
+- Aligned the frontend with the backend by removing all Gemini-related code and integrating with the Anthropic API proxy.
+- Improved code quality, maintainability, and security.
+
+**v1.0.1**
+- Initial release.
 
 ## License
 

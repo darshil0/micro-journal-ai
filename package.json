@@ -1,7 +1,7 @@
 {
   "name": "micro-journal-ai",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "description": "A minimalist AI-powered journaling web app with mood detection and personalized insights",
   "author": "Darshil",

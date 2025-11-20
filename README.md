@@ -1,12 +1,19 @@
 # Micro Journal AI
+
+![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Issues](https://img.shields.io/github/issues/darshil0/micro-journal-ai.svg)
+
 A minimalist, AI-powered journaling web app with mood detection and personalized insights.
 
-**Version: 2.1.0**
+---
 
 ## Overview
 This project is a web-based journaling application that uses AI to provide users with insights into their moods and thoughts. It features a simple and intuitive interface for writing and reviewing journal entries. The backend is powered by Node.js and Express, and the frontend is built with React and Vite.
 
 **Note:** All journal entries are stored locally in your browser's local storage. No data is ever sent to a server.
+
+---
 
 ## Features
 -   **AI-Powered Insights:** Get personalized insights and mood analysis for your journal entries using Anthropic's Claude API.
@@ -14,6 +21,8 @@ This project is a web-based journaling application that uses AI to provide users
 -   **Secure Backend:** A secure backend proxy to protect your API keys.
 -   **100% Private:** All journal entries are stored locally in your browser.
 -   **Easy Setup:** Get up and running with just a few commands.
+
+---
 
 ## Getting Started
 
@@ -50,21 +59,32 @@ This project is a web-based journaling application that uses AI to provide users
     npm start
     ```
 
+---
+
 ## Available Scripts
--   `npm run dev`: Starts the development server.
--   `npm start`: Starts the production server.
--   `npm run build`: Builds the application for production.
--   `npm run preview`: Previews the production build.
--   `npm run lint`: Lints the source code.
--   `npm run lint:fix`: Lints and fixes the source code.
--   `npm run format`: Formats the source code.
--   `npm run format:check`: Checks the formatting of the source code.
--   `npm run test`: Runs the unit and integration tests.
--   `npm run test:e2e`: Runs the end-to-end tests.
+
+| Script | Description |
+| :--- | :--- |
+| `npm run dev` | Starts the development server. |
+| `npm start` | Starts the production server. |
+| `npm run build` | Builds the application for production. |
+| `npm run preview` | Previews the production build. |
+| `npm run lint` | Lints the source code. |
+| `npm run lint:fix` | Lints and fixes the source code. |
+| `npm run format` | Formats the source code. |
+| `npm run format:check` | Checks the formatting of the source code. |
+| `npm run test` | Runs the unit and integration tests. |
+| `npm run test:e2e` | Runs the end-to-end tests. |
+
+---
 
 ## Changelog
 
-### v2.1.0
+**v2.1.1**
+- Updated `README.md` to a more standard GitHub format.
+- Incremented patch version.
+
+**v2.1.0**
 - Added a comprehensive test suite with unit, integration, and E2E tests.
 - Created a `TEST_EVIDENCE.md` document to provide a full overview of the testing strategy and results.
 
@@ -74,8 +94,10 @@ This project is a web-based journaling application that uses AI to provide users
 - Aligned the frontend with the backend by removing all Gemini-related code and integrating with the Anthropic API proxy.
 - Improved code quality, maintainability, and security.
 
-### v1.0.1
+**v1.0.1**
 - Initial release.
+
+---
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

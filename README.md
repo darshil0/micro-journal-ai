@@ -9,7 +9,6 @@ A minimalist, AI-powered journaling web app with mood detection and personalized
 ---
 
 ## Overview
-
 This project is a web-based journaling application that uses AI to provide users with insights into their moods and thoughts. It features a simple and intuitive interface for writing and reviewing journal entries. The backend is powered by Node.js and Express, and the frontend is built with React and Vite.
 
 **Note:** All journal entries are stored locally in your browser's local storage. No data is ever sent to a server.
@@ -17,8 +16,7 @@ This project is a web-based journaling application that uses AI to provide users
 ---
 
 ## Features
-
--   **AI-Powered Insights:** Get personalized insights and mood analysis for your journal entries.
+-   **AI-Powered Insights:** Get personalized insights and mood analysis for your journal entries using Anthropic's Claude API.
 -   **Simple Interface:** A clean and minimalist interface for a focused writing experience.
 -   **Secure Backend:** A secure backend proxy to protect your API keys.
 -   **100% Private:** All journal entries are stored locally in your browser.
@@ -29,23 +27,19 @@ This project is a web-based journaling application that uses AI to provide users
 ## Getting Started
 
 ### Prerequisites
-
 -   Node.js (v18.0.0 or higher)
 -   npm (v8.0.0 or higher)
 
 ### Installation
-
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/darshil0/micro-journal-ai.git
     cd micro-journal-ai
     ```
-
 2.  **Install dependencies:**
     ```bash
     npm install
     ```
-
 3.  **Set up environment variables:**
     Create a `.env` file in the root of the project and add your Anthropic API key:
     ```bash
@@ -53,7 +47,6 @@ This project is a web-based journaling application that uses AI to provide users
     ```
 
 ### Running the Application
-
 -   **Development:**
     ```bash
     npm run dev
@@ -95,7 +88,7 @@ This project is a web-based journaling application that uses AI to provide users
 - Added a comprehensive test suite with unit, integration, and E2E tests.
 - Created a `TEST_EVIDENCE.md` document to provide a full overview of the testing strategy and results.
 
-**v2.0.0**
+### v2.0.0
 - Overhauled the frontend architecture from a single monolithic component to a modular, component-based structure.
 - Removed the Firebase dependency and replaced it with local storage for all journal entries.
 - Aligned the frontend with the backend by removing all Gemini-related code and integrating with the Anthropic API proxy.
@@ -107,5 +100,4 @@ This project is a web-based journaling application that uses AI to provide users
 ---
 
 ## License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

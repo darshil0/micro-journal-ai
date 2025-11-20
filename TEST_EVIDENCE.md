@@ -1,14 +1,18 @@
 # Test Evidence Document
 
-This document provides a comprehensive overview of the testing strategy, results, and evidence for the Micro Journal AI application.
+This document provides a comprehensive overview of the testing strategy, results, and evidence for the **Micro Journal AI** application.
+
+---
 
 ## 1. Testing Strategy
 
 The testing strategy for this project is divided into three layers to ensure a high level of quality and reliability:
 
--   **Unit Tests:** These tests focus on individual components in isolation to verify their correctness. They are written using Vitest and React Testing Library.
--   **Integration Tests:** These tests ensure that multiple components work together as expected. They are also written using Vitest and React Testing Library, and they cover key user flows within the application.
--   **End-to-End (E2E) Tests:** These tests simulate a complete user journey from start to finish. They are written using Playwright and run against a live version of the application.
+-   **Unit Tests:** These tests focus on individual components in isolation to verify their correctness. They are written using `Vitest` and `React Testing Library`.
+-   **Integration Tests:** These tests ensure that multiple components work together as expected. They are also written using `Vitest` and `React Testing Library`, and they cover key user flows within the application.
+-   **End-to-End (E2E) Tests:** These tests simulate a complete user journey from start to finish. They are written using `Playwright` and run against a live version of the application.
+
+---
 
 ## 2. Test Results
 
@@ -16,7 +20,7 @@ All tests were executed and passed successfully. The following sections provide 
 
 ### Unit & Integration Test Results
 
-```
+```bash
 > micro-journal-ai@1.0.1 test
 > vitest
 
@@ -34,7 +38,7 @@ Test Files  3 passed (3)
 
 ### End-to-End Test Results
 
-```
+```bash
 > micro-journal-ai@1.0.1 test:e2e
 > playwright test
 
@@ -45,6 +49,8 @@ Running 2 tests using 1 worker
 
 2 passed (4.9s)
 ```
+
+---
 
 ## 3. Visual Evidence
 

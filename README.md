@@ -93,6 +93,17 @@ This project is a web-based journaling application that uses AI to provide users
 **v1.0.1**
 - Initial release.
 
+## Changelog
+
+**v2.0.0**
+- Overhauled the frontend architecture from a single monolithic component to a modular, component-based structure.
+- Removed the Firebase dependency and replaced it with local storage for all journal entries.
+- Aligned the frontend with the backend by removing all Gemini-related code and integrating with the Anthropic API proxy.
+- Improved code quality, maintainability, and security.
+
+**v1.0.1**
+- Initial release.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

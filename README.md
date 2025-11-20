@@ -2,7 +2,7 @@
 
 A minimalist, AI-powered journaling web app with mood detection and personalized insights.
 
-**Version: 2.0.0**
+**Version: 2.1.0**
 
 ## Overview
 
@@ -75,6 +75,23 @@ This project is a web-based journaling application that uses AI to provide users
 -   `npm run lint:fix`: Lints and fixes the source code.
 -   `npm run format`: Formats the source code.
 -   `npm run format:check`: Checks the formatting of the source code.
+-   `npm run test`: Runs the unit and integration tests.
+-   `npm run test:e2e`: Runs the end-to-end tests.
+
+## Changelog
+
+**v2.1.0**
+- Added a comprehensive test suite with unit, integration, and E2E tests.
+- Created a `TEST_EVIDENCE.md` document to provide a full overview of the testing strategy and results.
+
+**v2.0.0**
+- Overhauled the frontend architecture from a single monolithic component to a modular, component-based structure.
+- Removed the Firebase dependency and replaced it with local storage for all journal entries.
+- Aligned the frontend with the backend by removing all Gemini-related code and integrating with the Anthropic API proxy.
+- Improved code quality, maintainability, and security.
+
+**v1.0.1**
+- Initial release.
 
 ## Changelog
 

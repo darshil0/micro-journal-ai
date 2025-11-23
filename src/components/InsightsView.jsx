@@ -1,6 +1,7 @@
 // src/components/InsightsView.jsx
 import React from 'react';
 import { Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 const InsightsView = ({ entries, insight, aiLoading, handleGenerateInsights }) => (
   <div className="animate-in fade-in duration-300">
@@ -33,10 +34,8 @@ const InsightsView = ({ entries, insight, aiLoading, handleGenerateInsights }) =
     {insight ? (
       <div className="bg-white rounded-2xl p-6 shadow-xl border border-slate-200">
         <h3 className="font-bold text-lg text-slate-800 mb-4 pb-2 border-b border-slate-100">Your Personalized Analysis</h3>
-        <div className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-          {insight.split('\n').map((line, i) => (
-            <p key={i} className={`mb-2 ${line.startsWith('*') ? 'ml-4' : ''}`} dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}/>
-          ))}
+        <div className="prose prose-slate max-w-none">
+          <ReactMarkdown>{insight}</ReactMarkdown>
         </div>
       </div>
     ) : (

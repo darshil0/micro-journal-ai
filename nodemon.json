@@ -1,19 +1,9 @@
 {
-  "watch": [
-    "server.js",
-    ".env"
-  ],
+  "watch": ["server.js", ".env"],
   "ext": "js,json",
-  "ignore": [
-    "node_modules/",
-    "*.test.js"
-  ],
-  "delay": "1000",
+  "ignore": ["node_modules/", "dist/", "src/"],
   "env": {
     "NODE_ENV": "development"
   },
-  "verbose": true,
-  "execMap": {
-    "js": "node"
-  }
+  "delay": 1000
 }

@@ -1,6 +1,6 @@
 # Micro Journal AI
 
-![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Issues](https://img.shields.io/github/issues/darshil0/micro-journal-ai.svg)
 
@@ -79,6 +79,12 @@ This project is a web-based journaling application that uses AI to provide users
 ---
 
 ## Changelog
+
+**v2.2.0**
+- Fixed AI insight rendering issue by replacing manual markdown parsing with `react-markdown`.
+- Patched `esbuild` vulnerability by using an `overrides` block in `package.json`.
+- Improved test configuration for Vitest and Playwright.
+- Added `@tailwindcss/typography` plugin for better markdown styling.
 
 **v2.1.1**
 - Updated `README.md` to a more standard GitHub format.

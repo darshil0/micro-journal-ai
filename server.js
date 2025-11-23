@@ -61,6 +61,9 @@ app.post("/api/generate", async (req, res) => {
     }
 
     const result = await response.json();
+    if (result.content && result.content[0] && result.content[0].text) {
+      result.content[0].text = result.content[0].text.replace(/\\n/g, '\n');
+    }
     res.json({ provider: "anthropic", result });
   } catch (err) {
     console.error("Internal Server Error:", err);

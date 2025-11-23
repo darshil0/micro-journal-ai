@@ -1,41 +1,29 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { configDefaults } from 'vitest/config'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: true,
     proxy: {
-      "/api": {
-        target: "http://localhost:3000",
+      '/api': {
+        target: 'http://localhost:3000',
         changeOrigin: true,
+        secure: false,
       },
     },
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV !== 'production', // Keep sourcemaps in dev
+    sourcemap: false,
     minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'icons': ['lucide-react']
-        }
-      }
-    }
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
   },
-  // App version for potential use
-  define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0')
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './tests/setup.js',
-    exclude: [...configDefaults.exclude, 'e2e/**'],
-  },
-})
+});
